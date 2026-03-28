@@ -2,12 +2,15 @@ stages:
   - build
 
 variables:
-  REGISTRY: docker.git.o-9.top
-  IMAGE_NAME: noobxiaoj/frpc_webmanager
   IMAGE_TAG: amd64
-  INSECURE_REGISTRIES: docker.git.o-9.top
 
 # ==================== 使用 Kaniko 构建 Docker 镜像 ====================
+# 需要在 GitLab CI/CD Variables 中配置以下变量：
+# - REGISTRY: Docker Registry 地址
+# - IMAGE_NAME: 镜像名称
+# - REGISTRY_USER: Registry 用户名
+# - REGISTRY_PASSWORD: Registry 密码或 Access Token
+
 build:image:
   stage: build
   image:
@@ -19,7 +22,7 @@ build:image:
       mkdir -p /kaniko/.docker
       echo "{\"auths\":{\"${REGISTRY}\":{\"username\":\"${REGISTRY_USER}\",\"password\":\"${REGISTRY_PASSWORD}\"}}}" > /kaniko/.docker/config.json
 
-      echo "构建并推送 Docker 镜像 (AMD64)..."
+      echo "构建并推送 Docker 镜像..."
       /kaniko/executor \
         --dockerfile=Dockerfile \
         --context=. \
@@ -27,7 +30,7 @@ build:image:
         --insecure \
         --destination=${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
 
-      echo "镜像推送完成：${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+      echo "镜像推送完成"
   only:
     - master
     - main
