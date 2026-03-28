@@ -1,0 +1,220 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 亮色主题 - 白色配红色 */
+:root,
+[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --bg-tertiary: #e8e8e8;
+  --text-primary: #213547;
+  --text-secondary: #666666;
+  --text-tertiary: #999999;
+  --border-color: #e0e0e0;
+  --shadow-color: rgba(0, 0, 0, 0.08);
+  --shadow-hover: rgba(0, 0, 0, 0.12);
+  --accent-color: #e53935;
+  --accent-hover: #c62828;
+  --accent-color-bg: rgba(229, 57, 53, 0.08);
+  --card-bg: #ffffff;
+  --input-bg: #ffffff;
+  --button-bg: #f9f9f9;
+  --button-hover: #e8e8e8;
+  --code-bg: #f5f5f5;
+  --header-bg: #f5f5f5;
+  --header-text: #213547;
+  --success-color: #22c55e;
+  --success-color-bg: rgba(34, 197, 94, 0.15);
+  --danger-color: #ef4444;
+  --danger-color-bg: rgba(239, 68, 68, 0.15);
+  --danger-color-rgb: 239, 68, 68;
+  --edit-color: #3b82f6;
+  --edit-color-bg: rgba(59, 130, 246, 0.15);
+
+  /* 日志级别颜色 - 亮色主题 */
+  --info-color: #3b82f6;
+  --info-color-bg: rgba(59, 130, 246, 0.15);
+  --info-color-rgb: 59, 130, 246;
+  --warning-color: #f59e0b;
+  --warning-color-bg: rgba(245, 158, 11, 0.15);
+  --warning-color-rgb: 245, 158, 11;
+  --debug-color: #6b7280;
+  --debug-color-bg: rgba(107, 114, 128, 0.1);
+  --debug-color-rgb: 107, 114, 128;
+}
+
+/* 暗色主题 - 黑色配紫色 */
+[data-theme="dark"] {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #242424;
+  --bg-tertiary: #2f2f2f;
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --text-tertiary: #808080;
+  --border-color: #404040;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --shadow-hover: rgba(0, 0, 0, 0.4);
+  --accent-color: #9c27b0;
+  --accent-hover: #7b1fa2;
+  --accent-color-bg: rgba(156, 39, 176, 0.1);
+  --card-bg: #242424;
+  --input-bg: #2f2f2f;
+  --button-bg: #2f2f2f;
+  --button-hover: #3f3f3f;
+  --code-bg: #2f2f2f;
+  --header-bg: #242424;
+  --header-text: #ffffff;
+  --success-color: #3b82f6;
+  --success-color-bg: rgba(59, 130, 246, 0.15);
+  --danger-color: #a855f7;
+  --danger-color-bg: rgba(168, 85, 247, 0.15);
+  --danger-color-rgb: 168, 85, 247;
+  --edit-color: #22c55e;
+  --edit-color-bg: rgba(34, 197, 94, 0.15);
+
+  /* 日志级别颜色 - 暗色主题 */
+  --info-color: #60a5fa;
+  --info-color-bg: rgba(96, 165, 250, 0.15);
+  --info-color-rgb: 96, 165, 250;
+  --warning-color: #fbbf24;
+  --warning-color-bg: rgba(251, 191, 36, 0.15);
+  --warning-color-rgb: 251, 191, 36;
+  --debug-color: #9ca3af;
+  --debug-color-bg: rgba(156, 163, 175, 0.1);
+  --debug-color-rgb: 156, 163, 175;
+}
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#app {
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+a {
+  font-weight: 500;
+  color: var(--accent-color);
+  text-decoration: inherit;
+}
+a:hover {
+  color: var(--accent-hover);
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+
+h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: var(--button-bg);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.25s;
+}
+button:hover {
+  background-color: var(--button-hover);
+  border-color: var(--accent-color);
+}
+button:focus,
+button:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.card {
+  padding: 2em;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+input, textarea, select {
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.5em 1em;
+  font-family: inherit;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 0;
+  border-color: var(--accent-color);
+}
+
+code {
+  background-color: var(--code-bg);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+pre {
+  background-color: var(--code-bg);
+  padding: 1em;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
+/* 全局过渡效果 */
+* {
+  transition-property: background-color, color, border-color, box-shadow;
+  transition-duration: 0.3s;
+  transition-timing-function: ease-in-out;
+}
+
+/* 禁用过渡的元素 */
+*:not(a):not(button):not(input):not(textarea):not(select) {
+  transition-property: background-color, color, border-color, box-shadow;
+}
+

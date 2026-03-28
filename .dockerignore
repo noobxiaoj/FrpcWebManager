@@ -1,0 +1,64 @@
+# Git 相关
+.git
+.gitignore
+.gitattributes
+
+# 数据和日志
+data/
+*.log
+*.pid
+.backend.pid
+.frontend.pid
+
+# 依赖和构建产物
+node_modules/
+frontend/node_modules/
+frontend/dist/
+# bin/ 目录保留，包含 frpc 二进制文件（Docker 需要用到）
+# bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+# backend/bin/ 保留，包含 frpc 二进制文件
+# backend/bin/
+
+# 测试和覆盖率
+*.test
+*.out
+coverage/
+coverage.html
+
+# IDE 和编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+
+# 文档
+README.md
+CHANGELOG.md
+LICENSE
+*.md
+
+# Docker 相关（避免递归）
+docker-compose.override.yml
+.env
+
+# 开发相关
+Makefile
+scripts/dev.sh
+scripts/*.sh
+
+# 其他
+.editorconfig
+.eslintrc*
+.prettierrc*

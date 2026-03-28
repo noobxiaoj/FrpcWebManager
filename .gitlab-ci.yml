@@ -1,0 +1,34 @@
+stages:
+  - build
+
+variables:
+  REGISTRY: docker.git.o-9.top
+  IMAGE_NAME: noobxiaoj/frpc_webmanager
+  IMAGE_TAG: amd64
+  INSECURE_REGISTRIES: docker.git.o-9.top
+
+# ==================== 使用 Kaniko 构建 Docker 镜像 ====================
+build:image:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - |
+      echo "配置镜像仓库认证..."
+      mkdir -p /kaniko/.docker
+      echo "{\"auths\":{\"${REGISTRY}\":{\"username\":\"${REGISTRY_USER}\",\"password\":\"${REGISTRY_PASSWORD}\"}}}" > /kaniko/.docker/config.json
+
+      echo "构建并推送 Docker 镜像 (AMD64)..."
+      /kaniko/executor \
+        --dockerfile=Dockerfile \
+        --context=. \
+        --custom-platform=linux/amd64 \
+        --insecure \
+        --destination=${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+
+      echo "镜像推送完成：${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+  only:
+    - master
+    - main
+    - tags
