@@ -12,7 +12,9 @@ WORKDIR /frontend
 
 # 复制前端依赖文件
 COPY frontend/package*.json ./
-RUN npm ci
+
+# 设置 npm 镜像源
+RUN npm config set registry https://registry.npmmirror.com && npm ci
 
 # 复制前端源码并构建
 COPY frontend/ ./
@@ -30,6 +32,9 @@ RUN apk add --no-cache git
 
 # 复制依赖文件
 COPY backend/go.mod backend/go.sum ./
+
+# 设置 Go 代理
+ENV GOPROXY=https://goproxy.cn,direct
 RUN go mod download
 
 # 复制源码并构建（包括 bin 目录）
