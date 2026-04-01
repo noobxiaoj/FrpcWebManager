@@ -26,7 +26,7 @@ const toggleTheme = () => {
 .theme-toggle {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   padding: 8px;
   cursor: pointer;
   display: flex;
@@ -40,6 +40,7 @@ const toggleTheme = () => {
   background: var(--bg-tertiary);
   border-color: var(--accent-color);
   transform: scale(1.05);
+  box-shadow: var(--shadow-sm);
 }
 
 .theme-toggle:active {

@@ -7,6 +7,7 @@
 /* 亮色主题 - 白色配红色 */
 :root,
 [data-theme="light"] {
+  /* 基础色板 */
   --bg-primary: #ffffff;
   --bg-secondary: #f5f5f5;
   --bg-tertiary: #e8e8e8;
@@ -44,10 +45,26 @@
   --debug-color: #6b7280;
   --debug-color-bg: rgba(107, 114, 128, 0.1);
   --debug-color-rgb: 107, 114, 128;
+  --neutral-soft-bg: rgba(148, 163, 184, 0.1);
+  --overlay-bg: rgba(0, 0, 0, 0.6);
+  --muted-warning-text: #78716c;
+
+  /* 协议徽章颜色 */
+  --protocol-tcp-color: #3b82f6;
+  --protocol-tcp-bg: rgba(59, 130, 246, 0.15);
+  --protocol-udp-color: #ef4444;
+  --protocol-udp-bg: rgba(239, 68, 68, 0.15);
+  --protocol-http-color: #a855f7;
+  --protocol-http-bg: rgba(168, 85, 247, 0.15);
+  --protocol-https-color: #22c55e;
+  --protocol-https-bg: rgba(34, 197, 94, 0.15);
+  --protocol-tcpmux-color: #ec4899;
+  --protocol-tcpmux-bg: rgba(236, 72, 153, 0.15);
 }
 
 /* 暗色主题 - 黑色配紫色 */
 [data-theme="dark"] {
+  /* 基础色板 */
   --bg-primary: #1a1a1a;
   --bg-secondary: #242424;
   --bg-tertiary: #2f2f2f;
@@ -85,9 +102,25 @@
   --debug-color: #9ca3af;
   --debug-color-bg: rgba(156, 163, 175, 0.1);
   --debug-color-rgb: 156, 163, 175;
+  --neutral-soft-bg: rgba(148, 163, 184, 0.12);
+  --overlay-bg: rgba(0, 0, 0, 0.7);
+  --muted-warning-text: #a8a29e;
+
+  /* 协议徽章颜色 */
+  --protocol-tcp-color: #60a5fa;
+  --protocol-tcp-bg: rgba(96, 165, 250, 0.15);
+  --protocol-udp-color: #f87171;
+  --protocol-udp-bg: rgba(248, 113, 113, 0.15);
+  --protocol-http-color: #c084fc;
+  --protocol-http-bg: rgba(192, 132, 252, 0.15);
+  --protocol-https-color: #4ade80;
+  --protocol-https-bg: rgba(74, 222, 128, 0.15);
+  --protocol-tcpmux-color: #f472b6;
+  --protocol-tcpmux-bg: rgba(244, 114, 182, 0.15);
 }
 
 :root {
+  /* 字体和排版 */
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -99,6 +132,35 @@
 
   color: var(--text-primary);
   background-color: var(--bg-primary);
+
+  /* 尺寸和层级 token */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 9999px;
+  --shadow-sm: 0 1px 3px var(--shadow-color);
+  --shadow-md: 0 2px 8px var(--shadow-color);
+  --shadow-lg: 0 4px 12px var(--shadow-color);
+  --shadow-xl: 0 12px 24px var(--shadow-color);
+  --shadow-overlay: 0 20px 60px rgba(0, 0, 0, 0.3);
+  --focus-ring: 0 0 0 3px var(--accent-color-bg);
+  --danger-focus-ring: 0 0 0 3px var(--danger-color-bg);
+
+  /* 页面容器统一宽度：
+   * 用于首页、任务列表、关于页、设置页等常规内容页，
+   * 统一这些页面的可视宽度，避免页面之间出现明显的尺寸跳变。
+   */
+  --page-content-width: 1200px;
+
+  /* 页面头部按钮统一尺寸：
+   * 统一顶部操作按钮的高度、横向留白和图标尺寸，
+   * 保留按钮各自的颜色与交互语义，只做尺寸层面的归一化。
+   */
+  --page-header-button-height: 2.75rem;
+  --page-header-button-padding-x: 1.25rem;
+  --page-header-button-icon-size: 1rem;
 }
 
 html, body {
@@ -143,7 +205,7 @@ h2, h3, h4, h5, h6 {
 }
 
 button {
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
   padding: 0.6em 1.2em;
   font-size: 1em;
@@ -168,15 +230,15 @@ button:focus-visible {
   padding: 2em;
   background-color: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px var(--shadow-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
 }
 
 input, textarea, select {
   background-color: var(--input-bg);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   padding: 0.5em 1em;
   font-family: inherit;
 }
@@ -197,7 +259,7 @@ code {
 pre {
   background-color: var(--code-bg);
   padding: 1em;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   overflow-x: auto;
 }
 
@@ -218,3 +280,44 @@ pre code {
   transition-property: background-color, color, border-color, box-shadow;
 }
 
+/* 页面头部统一按钮尺寸 */
+.page-header-action-button {
+  min-height: var(--page-header-button-height);
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+  padding-left: var(--page-header-button-padding-x);
+  padding-right: var(--page-header-button-padding-x);
+  font-size: 0.95rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.page-header-action-button svg,
+.page-header-action-button .spinner {
+  width: var(--page-header-button-icon-size);
+  height: var(--page-header-button-icon-size);
+}
+
+.page-header-action-button--icon {
+  width: var(--page-header-button-height);
+  min-width: var(--page-header-button-height);
+  height: var(--page-header-button-height);
+  padding: 0;
+}
+
+@media (max-width: 768px) {
+  .page-header-action-button {
+    min-height: 2.5rem;
+    padding-top: 0.55rem;
+    padding-bottom: 0.55rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .page-header-action-button--icon {
+    width: 2.5rem;
+    min-width: 2.5rem;
+    height: 2.5rem;
+  }
+}

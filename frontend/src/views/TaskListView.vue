@@ -1,10 +1,9 @@
 <template>
   <div class="task-list">
-    <div class="page-header">
-      <h1 class="page-title">任务列表</h1>
-      <div class="header-actions">
+    <PageHeader title="任务列表">
+      <template #actions>
         <AppButton
-          class="btn-refresh"
+          class="btn-refresh page-header-action-button page-header-action-button--icon"
           preserve-style
           @click="handleRefresh"
           :disabled="taskStore.loading"
@@ -22,17 +21,21 @@
             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
           </svg>
         </AppButton>
-        <AppButton class="btn-primary" preserve-style @click="goToCreate">
+        <AppButton
+          class="btn-primary page-header-action-button page-header-action-button--icon"
+          preserve-style
+          @click="goToCreate"
+          title="创建任务"
+        >
           <template #icon>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="12" y1="5" x2="12" y2="19"></line>
               <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
           </template>
-          创建任务
         </AppButton>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <!-- 错误提示 -->
     <div v-if="taskStore.error" class="error-message">
@@ -112,6 +115,7 @@ import { computed, onMounted, watch, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useTaskStore } from '@/stores/task'
 import AppButton from '@/components/AppButton.vue'
+import PageHeader from '@/components/PageHeader.vue'
 import TaskStatusIndicator from '@/components/TaskStatusIndicator.vue'
 import { getApiBaseUrl } from '@/utils/api'
 
@@ -250,30 +254,10 @@ const handleDrop = (dropIndex, event) => {
 
 <style scoped>
 .task-list {
-  max-width: 1400px;
+  /* 任务列表页与首页、关于页、设置页共用统一内容宽度。 */
+  max-width: var(--page-content-width);
   margin: 0 auto;
   padding: 2rem;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.page-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
 }
 
 .btn-refresh {
@@ -285,7 +269,7 @@ const handleDrop = (dropIndex, event) => {
   padding: 0;
   background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   color: var(--text-primary);
   cursor: pointer;
   transition: all 0.3s;
@@ -329,18 +313,18 @@ const handleDrop = (dropIndex, event) => {
   background: var(--accent-color);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 2px 8px var(--shadow-color);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-primary:hover {
   opacity: 0.9;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px var(--shadow-hover);
+  box-shadow: var(--shadow-lg);
 }
 
 .btn-primary svg {
@@ -351,7 +335,7 @@ const handleDrop = (dropIndex, event) => {
 .error-message {
   background: var(--danger-color-bg);
   border: 1px solid var(--danger-color);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   padding: 1rem;
   margin-bottom: 1.5rem;
   color: var(--danger-color);
@@ -390,9 +374,9 @@ const handleDrop = (dropIndex, event) => {
 .task-card {
   position: relative;
   background: var(--card-bg);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
-  box-shadow: 0 2px 8px var(--shadow-color);
+  box-shadow: var(--shadow-md);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   border: 2px solid transparent;
@@ -400,7 +384,7 @@ const handleDrop = (dropIndex, event) => {
 
 .task-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 16px var(--shadow-color);
+  box-shadow: var(--shadow-xl);
 }
 
 .task-card.task-running {
@@ -410,7 +394,7 @@ const handleDrop = (dropIndex, event) => {
 .task-card.dragging {
   opacity: 0.4;
   transform: scale(0.95) rotate(2deg);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-overlay);
   cursor: grabbing;
 }
 
@@ -418,7 +402,7 @@ const handleDrop = (dropIndex, event) => {
   border-color: var(--accent-color);
   background: var(--accent-color-bg);
   transform: scale(1.02);
-  box-shadow: 0 0 0 3px var(--accent-color-bg), 0 12px 24px var(--shadow-color);
+  box-shadow: var(--focus-ring), var(--shadow-xl);
 }
 
 .task-card[draggable="true"] {
@@ -500,16 +484,6 @@ const handleDrop = (dropIndex, event) => {
 @media (max-width: 768px) {
   .task-list {
     padding: 1rem;
-  }
-
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .page-title {
-    font-size: 1.5rem;
   }
 
   .task-grid {

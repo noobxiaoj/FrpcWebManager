@@ -67,12 +67,12 @@ const hasContent = computed(() => {
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 2px 8px var(--shadow-color);
+  box-shadow: var(--shadow-md);
   position: relative;
   overflow: hidden;
 }
@@ -138,7 +138,7 @@ const hasContent = computed(() => {
 .app-button--primary:hover:not(:disabled) {
   opacity: 0.9;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px var(--shadow-hover);
+  box-shadow: var(--shadow-lg);
 }
 
 /* Secondary variant - 次要按钮（边框样式） */
@@ -158,13 +158,13 @@ const hasContent = computed(() => {
 .app-button--danger {
   background: var(--danger-color);
   color: white;
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 .app-button--danger:hover:not(:disabled) {
   opacity: 0.9;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+  box-shadow: var(--shadow-lg);
 }
 
 /* Ghost variant - 幽灵按钮（透明背景） */

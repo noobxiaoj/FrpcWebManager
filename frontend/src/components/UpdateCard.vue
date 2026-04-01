@@ -35,15 +35,15 @@ const renderedContent = computed(() => {
 .update-card {
   background: var(--card-bg);
   padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px var(--shadow-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
   margin-bottom: 0.5rem;
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .update-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px var(--shadow-color);
+  box-shadow: var(--shadow-lg);
 }
 
 .current-update {
@@ -70,7 +70,7 @@ const renderedContent = computed(() => {
   color: var(--accent-color);
   background: var(--accent-color-bg);
   padding: 0.25rem 0.75rem;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   margin-bottom: 1rem;
   display: inline-block;
 }
@@ -100,7 +100,7 @@ const renderedContent = computed(() => {
   background: var(--accent-color-bg);
   color: var(--accent-color);
   padding: 0.2rem 0.4rem;
-  border-radius: 3px;
+  border-radius: var(--radius-xs);
   font-size: 0.9em;
 }
 

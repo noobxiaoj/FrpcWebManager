@@ -318,7 +318,7 @@ onMounted(() => {
   padding: 0.5rem 1rem;
   background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.3s;
@@ -342,9 +342,9 @@ onMounted(() => {
 
 .form-section {
   background: var(--card-bg);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
-  box-shadow: 0 2px 8px var(--shadow-color);
+  box-shadow: var(--shadow-md);
 }
 
 .section-title {
@@ -369,7 +369,7 @@ onMounted(() => {
   padding: 0.5rem 1rem;
   background: var(--success-color-bg);
   border: 1px solid var(--success-color);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   color: var(--success-color);
   font-size: 0.875rem;
   font-weight: 500;
@@ -381,7 +381,7 @@ onMounted(() => {
   background: var(--success-color-bg);
   opacity: 0.8;
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px var(--shadow-hover);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-add svg {
@@ -407,7 +407,7 @@ onMounted(() => {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--bg-primary);
   color: var(--text-primary);
   font-size: 0.9rem;
@@ -432,7 +432,7 @@ onMounted(() => {
   color: var(--warning-color);
   padding: 0.75rem;
   background: var(--warning-color-bg);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   border-left: 3px solid var(--warning-color);
 }
 
@@ -450,7 +450,7 @@ onMounted(() => {
   margin-top: 1.25rem;
   padding: 1rem;
   background: var(--bg-secondary);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
 }
 
@@ -480,7 +480,7 @@ onMounted(() => {
 
 .status-badge {
   padding: 0.2rem 0.6rem;
-  border-radius: 10px;
+  border-radius: var(--radius-pill);
   font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -497,7 +497,7 @@ onMounted(() => {
 }
 
 .status-no-task {
-  background: var(--text-secondary-bg, rgba(148, 163, 184, 0.1));
+  background: var(--neutral-soft-bg);
   color: var(--text-secondary);
 }
 
@@ -508,9 +508,9 @@ onMounted(() => {
   padding: 1.5rem;
   background: var(--warning-color-bg);
   border: 2px solid var(--warning-color);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   margin-top: 1rem;
-  box-shadow: 0 2px 8px var(--shadow-color);
+  box-shadow: var(--shadow-md);
 }
 
 .no-servers-warning svg {
@@ -560,7 +560,7 @@ onMounted(() => {
 .form-group select:focus {
   outline: none;
   border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px var(--accent-color-bg);
+  box-shadow: var(--focus-ring);
 }
 
 .form-group textarea {
@@ -579,7 +579,7 @@ onMounted(() => {
   padding: 2rem;
   color: var(--text-secondary);
   background: var(--bg-secondary);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   border: 2px dashed var(--border-color);
 }
 
@@ -589,15 +589,15 @@ onMounted(() => {
   gap: 1rem;
   padding: 1.5rem;
   background: var(--card-bg);
-  border-radius: 12px;
-  box-shadow: 0 2px 8px var(--shadow-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-primary,
 .btn-secondary {
   padding: 0.75rem 2rem;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -611,7 +611,7 @@ onMounted(() => {
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+  box-shadow: var(--shadow-lg);
 }
 
 .btn-primary:disabled {

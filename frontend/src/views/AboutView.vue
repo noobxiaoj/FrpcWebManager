@@ -1,6 +1,6 @@
 <template>
   <div class="about">
-    <h1 class="about-title">关于项目</h1>
+    <PageHeader title="关于项目" />
 
     <!-- 错误提示 -->
     <div v-if="loadError" class="error-message">
@@ -98,6 +98,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import AppButton from '@/components/AppButton.vue'
+import PageHeader from '@/components/PageHeader.vue'
 import UpdateCard from '@/components/UpdateCard.vue'
 
 const introductionContent = ref('')
@@ -325,16 +326,10 @@ onMounted(() => {
 
 <style scoped>
 .about {
-  max-width: 1200px;
+  /* 关于页改为引用全局页面宽度变量，便于后续统一维护。 */
+  max-width: var(--page-content-width);
   margin: 0 auto;
-  padding: 20px;
-}
-
-.about-title {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 2rem;
-  color: var(--text-primary);
+  padding: 2rem;
 }
 
 .section {
@@ -358,15 +353,15 @@ onMounted(() => {
 
 /* 错误提示样式 */
 .error-message {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 8px;
+  background: color-mix(in srgb, var(--danger-color) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger-color) 30%, transparent);
+  border-radius: var(--radius-md);
   padding: 1.5rem;
   margin-bottom: 2rem;
 }
 
 .error-message h3 {
-  color: #ef4444;
+  color: var(--danger-color);
   margin: 0 0 1rem 0;
   font-size: 1.2rem;
 }
@@ -396,11 +391,11 @@ onMounted(() => {
   color: white;
   border: none;
   padding: 0.4rem 0.6rem;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   line-height: 1;
-  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.25);
+  box-shadow: var(--shadow-md);
   overflow: hidden;
   min-width: 2rem;
   height: 2rem;
@@ -427,7 +422,7 @@ onMounted(() => {
 
 .pagination-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgba(99, 102, 241, 0.35);
+  box-shadow: var(--shadow-lg);
 }
 
 .pagination-btn:hover:not(:disabled)::before {
@@ -436,7 +431,7 @@ onMounted(() => {
 
 .pagination-btn:active:not(:disabled) {
   transform: translateY(0);
-  box-shadow: 0 1px 3px rgba(99, 102, 241, 0.2);
+  box-shadow: var(--shadow-sm);
 }
 
 .pagination-btn:disabled {
@@ -457,7 +452,7 @@ onMounted(() => {
   text-align: center;
   padding: 0.35rem 0.75rem;
   background: var(--accent-color-bg);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
 .pagination-info::before {
@@ -468,11 +463,6 @@ onMounted(() => {
 @media (max-width: 768px) {
   .about {
     padding: 1rem;
-  }
-
-  .about-title {
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
   }
 
   .section-title {

@@ -16,26 +16,26 @@ defineProps({
 .task-status-indicator {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: var(--radius-pill);
   display: inline-block;
   flex-shrink: 0;
 }
 
 /* 运行状态 - 绿色 */
 .status-running {
-  background-color: #22c55e;
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+  background-color: var(--success-color);
+  box-shadow: 0 0 0 3px var(--success-color-bg);
 }
 
 /* 停止状态 - 红色 */
 .status-stopped {
-  background-color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+  background-color: var(--danger-color);
+  box-shadow: 0 0 0 3px var(--danger-color-bg);
 }
 
 /* 错误状态 - 红色 */
 .status-error {
-  background-color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+  background-color: var(--danger-color);
+  box-shadow: 0 0 0 3px var(--danger-color-bg);
 }
 </style>

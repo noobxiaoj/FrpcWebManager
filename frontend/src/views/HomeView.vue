@@ -1,9 +1,9 @@
 <template>
   <div class="home">
-    <div class="page-header">
-      <h1 class="page-title">服务器列表</h1>
-      <div class="header-actions">
+    <PageHeader title="服务器列表">
+      <template #actions>
         <AppButton
+          class="page-header-action-button page-header-action-button--icon"
           variant="icon"
           @click="handleRefresh"
           :disabled="loading"
@@ -18,17 +18,21 @@
             </svg>
           </template>
         </AppButton>
-        <AppButton variant="primary" @click="addServer" title="新建服务器">
+        <AppButton
+          class="btn-primary page-header-action-button page-header-action-button--icon"
+          preserve-style
+          @click="addServer"
+          title="新建服务器"
+        >
           <template #icon>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="12" y1="5" x2="12" y2="19"></line>
               <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
           </template>
-          新建服务器
         </AppButton>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <!-- 服务器日志列表 -->
     <div v-if="servers.length > 0 || loading" class="server-list">
@@ -344,6 +348,7 @@ import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { serverAPI } from '@/api/server'
 import { getApiBaseUrl } from '@/utils/api'
 import AppButton from '@/components/AppButton.vue'
+import PageHeader from '@/components/PageHeader.vue'
 import ServerInfo from '@/components/ServerInfo.vue'
 
 const loading = ref(false)
@@ -936,30 +941,37 @@ onUnmounted(() => {
 
 <style scoped>
 .home {
-  max-width: 1600px;
+  /* 首页使用统一的页面内容宽度，保证和其他常规页面观感一致。 */
+  max-width: var(--page-content-width);
   margin: 0 auto;
   padding: 2rem;
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.page-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.header-actions {
+.btn-primary {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: var(--shadow-md);
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-primary svg {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .server-list {
@@ -970,8 +982,8 @@ onUnmounted(() => {
 
 .server-log-card {
   background: var(--card-bg);
-  border-radius: 16px;
-  box-shadow: 0 4px 12px var(--shadow-color);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
   border: 1px solid var(--border-color);
   transition: all 0.3s;
@@ -994,7 +1006,7 @@ onUnmounted(() => {
 }
 
 .server-log-card:hover {
-  box-shadow: 0 12px 24px var(--shadow-color);
+  box-shadow: var(--shadow-xl);
   transform: translateY(-2px);
   border-color: var(--accent-color);
 }
@@ -1006,7 +1018,7 @@ onUnmounted(() => {
 .server-log-card.dragging {
   opacity: 0.4;
   transform: scale(0.98) rotate(1deg);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-overlay);
   cursor: grabbing;
 }
 
@@ -1014,7 +1026,7 @@ onUnmounted(() => {
   border-color: var(--accent-color);
   background: var(--accent-color-bg);
   transform: scale(1.01);
-  box-shadow: 0 0 0 3px var(--accent-color-bg), 0 12px 24px var(--shadow-color);
+  box-shadow: var(--focus-ring), var(--shadow-xl);
 }
 
 .server-log-card[draggable="true"] {
@@ -1101,7 +1113,7 @@ onUnmounted(() => {
   gap: 0.75rem;
   padding: 0.25rem 0.5rem;
   margin: 0;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   transition: all 0.2s ease;
   position: relative;
   border-left: 2px solid transparent;
@@ -1122,7 +1134,7 @@ onUnmounted(() => {
 .log-line:hover {
   background: var(--bg-primary);
   transform: translateX(2px);
-  box-shadow: 0 1px 4px var(--shadow-color);
+  box-shadow: var(--shadow-sm);
 }
 
 .log-line:hover::before {
@@ -1407,7 +1419,7 @@ onUnmounted(() => {
   align-items: center;
   padding: 0.25rem 0.6rem;
   background: var(--bg-primary);
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border-color);
   transition: all 0.3s;
 }
@@ -1415,7 +1427,7 @@ onUnmounted(() => {
 .stat-item:hover {
   border-color: var(--accent-color);
   transform: translateY(-1px);
-  box-shadow: 0 1px 4px var(--shadow-color);
+  box-shadow: var(--shadow-sm);
 }
 
 .stat-label {
@@ -1475,7 +1487,7 @@ onUnmounted(() => {
   margin: 0;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.3s;
@@ -1507,7 +1519,7 @@ onUnmounted(() => {
   border-color: var(--accent-color);
   color: var(--accent-color);
   transform: translateY(-1px);
-  box-shadow: 0 2px 6px var(--shadow-color);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-refresh svg,
@@ -1576,7 +1588,7 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--overlay-bg);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -1596,8 +1608,8 @@ onUnmounted(() => {
 
 .modal-card {
   background: var(--card-bg);
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-overlay);
   width: 90%;
   max-width: 520px;
   max-height: 90vh;
@@ -1642,7 +1654,7 @@ onUnmounted(() => {
   padding: 0;
   background: transparent;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.3s;
@@ -1719,7 +1731,7 @@ onUnmounted(() => {
   padding: 0.75rem 1rem;
   background: var(--bg-primary);
   border: 1.5px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-size: 0.9rem;
   color: var(--text-primary);
   transition: all 0.3s;
@@ -1737,7 +1749,7 @@ onUnmounted(() => {
 
 .form-input:focus {
   border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px var(--accent-color-bg);
+  box-shadow: var(--focus-ring);
 }
 
 .form-input.input-error {
@@ -1745,7 +1757,7 @@ onUnmounted(() => {
 }
 
 .form-input.input-error:focus {
-  box-shadow: 0 0 0 3px var(--danger-color-bg);
+  box-shadow: var(--danger-focus-ring);
 }
 
 .form-error {
@@ -1830,7 +1842,7 @@ onUnmounted(() => {
   margin: 0;
   padding: 0.75rem;
   background: var(--warning-color-bg);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   border-left: 3px solid var(--warning-color);
 }
 
@@ -1843,7 +1855,7 @@ onUnmounted(() => {
   overflow-y: auto;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 }
 
 .task-list::-webkit-scrollbar {
@@ -1892,15 +1904,6 @@ onUnmounted(() => {
 @media (max-width: 768px) {
   .home {
     padding: 1rem;
-  }
-
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .page-title {
-    font-size: 1.5rem;
   }
 
   .server-meta {

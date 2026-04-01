@@ -77,7 +77,7 @@ const toggleMobileMenu = () => {
 /* 顶部导航栏 */
 .top-header {
   background: var(--header-bg);
-  box-shadow: 0 2px 8px var(--shadow-color);
+  box-shadow: var(--shadow-md);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -132,7 +132,7 @@ const toggleMobileMenu = () => {
   text-decoration: none;
   font-weight: 500;
   padding: 0.5rem 1rem;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   transition: all 0.3s;
   position: relative;
 }

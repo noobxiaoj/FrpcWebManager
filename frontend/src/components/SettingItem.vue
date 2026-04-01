@@ -70,7 +70,7 @@ defineProps({
 
 .setting-warning {
   font-size: 0.85rem;
-  color: #78716c;
+  color: var(--muted-warning-text);
   margin: 0.5rem 0 0 0;
   font-weight: 400;
   opacity: 0.8;

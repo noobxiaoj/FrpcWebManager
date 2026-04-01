@@ -350,7 +350,7 @@ const getServerDisplayText = (task) => {
   width: 2.5rem;
   height: 2.5rem;
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--bg-secondary);
   cursor: pointer;
   transition: all 0.2s;
@@ -399,7 +399,7 @@ const getServerDisplayText = (task) => {
   width: 2.25rem;
   height: 2.25rem;
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--bg-secondary);
   cursor: pointer;
   transition: all 0.2s;
@@ -497,7 +497,7 @@ const getServerDisplayText = (task) => {
   background: var(--accent-color);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
@@ -550,7 +550,7 @@ const getServerDisplayText = (task) => {
   padding: 0.5rem 1rem;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   color: var(--text-primary);
   font-size: 0.875rem;
   font-weight: 500;
@@ -626,14 +626,14 @@ const getServerDisplayText = (task) => {
 /* 卡片样式 */
 .card {
   background: var(--card-bg);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border-color);
   overflow: hidden;
-  box-shadow: 0 1px 3px var(--shadow-color);
+  box-shadow: var(--shadow-sm);
 }
 
 .main-card {
-  box-shadow: 0 4px 12px var(--shadow-color);
+  box-shadow: var(--shadow-lg);
 }
 
 .btn-icon-small {
@@ -643,7 +643,7 @@ const getServerDisplayText = (task) => {
   width: 2rem;
   height: 2rem;
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--bg-primary);
   color: var(--text-secondary);
   cursor: pointer;
@@ -694,7 +694,7 @@ const getServerDisplayText = (task) => {
   gap: 0.75rem;
   padding: 0.875rem 1rem;
   background: var(--bg-secondary);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   transition: all 0.2s;
 }
 
@@ -710,7 +710,7 @@ const getServerDisplayText = (task) => {
   align-items: center;
   justify-content: center;
   background: var(--accent-color-bg);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   margin-top: 0;
 }
 
@@ -751,16 +751,16 @@ const getServerDisplayText = (task) => {
 .proxy-card {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
   margin-bottom: 1rem;
   transition: all 0.3s;
-  box-shadow: 0 2px 8px var(--shadow-color);
+  box-shadow: var(--shadow-md);
 }
 
 .proxy-card:hover {
   border-color: var(--accent-color);
-  box-shadow: 0 2px 12px var(--shadow-hover);
+  box-shadow: var(--shadow-lg);
 }
 
 /* 缩略模式 */
@@ -770,7 +770,7 @@ const getServerDisplayText = (task) => {
 
 .proxy-card-compact:hover {
   border-color: var(--accent-color);
-  box-shadow: 0 2px 12px var(--shadow-hover);
+  box-shadow: var(--shadow-lg);
 }
 
 .proxy-header {
@@ -810,38 +810,38 @@ const getServerDisplayText = (task) => {
 .proxy-type-badge {
   font-size: 0.75rem;
   padding: 0.25rem 0.75rem;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   font-weight: 600;
 }
 
 /* TCP - 蓝色 */
 .proxy-type-badge.badge-tcp {
-  background: rgba(59, 130, 246, 0.15);
-  color: #3b82f6;
+  background: var(--protocol-tcp-bg);
+  color: var(--protocol-tcp-color);
 }
 
 /* UDP - 红色 */
 .proxy-type-badge.badge-udp {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
+  background: var(--protocol-udp-bg);
+  color: var(--protocol-udp-color);
 }
 
 /* HTTP - 紫色 */
 .proxy-type-badge.badge-http {
-  background: rgba(168, 85, 247, 0.15);
-  color: #a855f7;
+  background: var(--protocol-http-bg);
+  color: var(--protocol-http-color);
 }
 
 /* HTTPS - 绿色 */
 .proxy-type-badge.badge-https {
-  background: rgba(34, 197, 94, 0.15);
-  color: #22c55e;
+  background: var(--protocol-https-bg);
+  color: var(--protocol-https-color);
 }
 
 /* TCPMUX - 粉色 */
 .proxy-type-badge.badge-tcpmux {
-  background: rgba(236, 72, 153, 0.15);
-  color: #ec4899;
+  background: var(--protocol-tcpmux-bg);
+  color: var(--protocol-tcpmux-color);
 }
 
 /* 缩略信息区域 */
@@ -905,7 +905,7 @@ const getServerDisplayText = (task) => {
   padding: 0.75rem 1rem;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -951,7 +951,7 @@ const getServerDisplayText = (task) => {
 
 .task-status {
   padding: 0.25rem 0.5rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   font-size: 0.625rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -995,7 +995,7 @@ const getServerDisplayText = (task) => {
   padding: 0.375rem 0.75rem;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   color: var(--text-primary);
   font-size: 0.75rem;
   font-weight: 500;

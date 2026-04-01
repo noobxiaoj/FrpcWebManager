@@ -217,16 +217,16 @@ const handleRemove = () => {
 .proxy-card {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
   margin-bottom: 1rem;
   transition: all 0.3s;
-  box-shadow: 0 2px 8px var(--shadow-color);
+  box-shadow: var(--shadow-md);
 }
 
 .proxy-card:hover {
   border-color: var(--accent-color);
-  box-shadow: 0 2px 12px var(--shadow-hover);
+  box-shadow: var(--shadow-lg);
 }
 
 .proxy-card-compact {
@@ -269,38 +269,38 @@ const handleRemove = () => {
 .proxy-type-badge {
   font-size: 0.75rem;
   padding: 0.25rem 0.75rem;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   font-weight: 600;
 }
 
 /* TCP - 蓝色 */
 .proxy-type-badge.badge-tcp {
-  background: rgba(59, 130, 246, 0.15);
-  color: #3b82f6;
+  background: var(--protocol-tcp-bg);
+  color: var(--protocol-tcp-color);
 }
 
 /* UDP - 红色 */
 .proxy-type-badge.badge-udp {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
+  background: var(--protocol-udp-bg);
+  color: var(--protocol-udp-color);
 }
 
 /* HTTP - 紫色 */
 .proxy-type-badge.badge-http {
-  background: rgba(168, 85, 247, 0.15);
-  color: #a855f7;
+  background: var(--protocol-http-bg);
+  color: var(--protocol-http-color);
 }
 
 /* HTTPS - 绿色 */
 .proxy-type-badge.badge-https {
-  background: rgba(34, 197, 94, 0.15);
-  color: #22c55e;
+  background: var(--protocol-https-bg);
+  color: var(--protocol-https-color);
 }
 
 /* TCPMUX - 粉色 */
 .proxy-type-badge.badge-tcpmux {
-  background: rgba(236, 72, 153, 0.15);
-  color: #ec4899;
+  background: var(--protocol-tcpmux-bg);
+  color: var(--protocol-tcpmux-color);
 }
 
 .proxy-compact-info {
@@ -335,7 +335,7 @@ const handleRemove = () => {
   align-items: center;
   justify-content: center;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   width: 2rem;
   height: 2rem;
   padding: 0;
@@ -353,7 +353,7 @@ const handleRemove = () => {
   background: var(--success-color-bg);
   opacity: 0.8;
   transform: scale(1.1);
-  box-shadow: 0 2px 8px var(--shadow-hover);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-check:active {
@@ -376,7 +376,7 @@ const handleRemove = () => {
   background: var(--edit-color-bg);
   opacity: 0.8;
   transform: scale(1.1);
-  box-shadow: 0 2px 8px var(--shadow-hover);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-edit:active {
@@ -399,7 +399,7 @@ const handleRemove = () => {
   background: var(--danger-color-bg);
   opacity: 0.8;
   transform: scale(1.1);
-  box-shadow: 0 2px 8px var(--shadow-hover);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-remove:active {
@@ -422,13 +422,13 @@ const handleRemove = () => {
 
 .form-group.has-error input,
 .form-group.has-error select {
-  border-color: #ef4444;
-  background: rgba(239, 68, 68, 0.05);
+  border-color: var(--danger-color);
+  background: color-mix(in srgb, var(--danger-color) 8%, transparent);
   animation: shake 0.3s ease-in-out;
 }
 
 .form-group.has-error label {
-  color: #ef4444;
+  color: var(--danger-color);
 }
 
 @keyframes shake {
@@ -441,7 +441,7 @@ const handleRemove = () => {
   display: block;
   margin-top: 0.375rem;
   font-size: 0.75rem;
-  color: #ef4444;
+  color: var(--danger-color);
   font-weight: 500;
 }
 
@@ -458,7 +458,7 @@ const handleRemove = () => {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--bg-primary);
   color: var(--text-primary);
   font-size: 0.9rem;
@@ -480,7 +480,7 @@ const handleRemove = () => {
 .form-group select:focus {
   outline: none;
   border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px var(--accent-color-bg);
+  box-shadow: var(--focus-ring);
 }
 
 .form-row {

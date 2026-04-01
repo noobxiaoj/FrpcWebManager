@@ -1,14 +1,11 @@
 <template>
   <div class="settings">
-    <div class="page-header">
-      <div class="page-header-left">
-        <h1 class="page-title">系统设置</h1>
-      </div>
-      <div class="page-header-actions">
+    <PageHeader title="系统设置">
+      <template #actions>
         <AppButton
           @click="saveSettings"
           :disabled="saving || !hasChanges"
-          class="btn-save"
+          class="btn-save page-header-action-button"
           preserve-style
         >
           <svg v-if="saving" class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -25,13 +22,13 @@
           v-if="hasChanges"
           @click="resetSettings"
           :disabled="saving"
-          class="btn-reset"
+          class="btn-reset page-header-action-button"
           preserve-style
         >
           重置
         </AppButton>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <div class="settings-container">
       <div class="setting-section">
@@ -207,6 +204,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useTaskStore } from '@/stores/task'
 import { getApiBaseUrl } from '@/utils/api'
 import AppButton from '@/components/AppButton.vue'
+import PageHeader from '@/components/PageHeader.vue'
 import SettingItem from '@/components/SettingItem.vue'
 import Switch from '@/components/AppSwitch.vue'
 
@@ -413,40 +411,10 @@ onMounted(() => {
 
 <style scoped>
 .settings {
-  max-width: 800px;
+  /* 设置页与常规信息页保持一致的外层宽度，减少页面切换时的跳变感。 */
+  max-width: var(--page-content-width);
   margin: 0 auto;
   padding: 2rem;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.page-header-left {
-  flex: 1;
-}
-
-.page-header-actions {
-  display: flex;
-  gap: 0.75rem;
-  flex-shrink: 0;
-}
-
-.page-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 0.5rem 0;
-}
-
-.page-description {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  margin: 0;
 }
 
 .settings-container {
@@ -464,7 +432,7 @@ onMounted(() => {
   background: var(--accent-color);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
@@ -475,7 +443,7 @@ onMounted(() => {
 .btn-save:hover:not(:disabled) {
   opacity: 0.9;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px var(--shadow-color);
+  box-shadow: var(--shadow-lg);
 }
 
 .btn-save:disabled {
@@ -507,7 +475,7 @@ onMounted(() => {
   background: transparent;
   color: var(--text-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
@@ -527,10 +495,10 @@ onMounted(() => {
 
 .setting-section {
   background: var(--card-bg);
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   padding: 1.5rem;
   border: 1px solid var(--border-color);
-  box-shadow: 0 4px 12px var(--shadow-color);
+  box-shadow: var(--shadow-lg);
 }
 
 .section-title {
@@ -547,7 +515,7 @@ onMounted(() => {
   min-width: 150px;
   padding: 0.5rem 2rem 0.5rem 0.75rem;
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-size: 1rem;
   background: var(--input-bg);
   color: var(--text-primary);
@@ -563,7 +531,7 @@ onMounted(() => {
 .interval-select:focus {
   outline: none;
   border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px var(--accent-color-bg);
+  box-shadow: var(--focus-ring);
 }
 
 .interval-select:disabled {
@@ -581,10 +549,10 @@ onMounted(() => {
   bottom: 2rem;
   right: 2rem;
   padding: 1rem 1.5rem;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-size: 0.875rem;
   font-weight: 500;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-lg);
   animation: slideIn 0.3s ease;
   z-index: 1000;
 }
@@ -615,7 +583,7 @@ onMounted(() => {
   width: 120px;
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-size: 1rem;
   background: var(--input-bg);
   color: var(--text-primary);
@@ -626,7 +594,7 @@ onMounted(() => {
 .port-input:focus {
   outline: none;
   border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px var(--accent-color-bg);
+  box-shadow: var(--focus-ring);
 }
 
 .port-input:disabled {
@@ -641,7 +609,7 @@ onMounted(() => {
 /* 设置警告文字 */
 .setting-warning {
   font-size: 0.85rem;
-  color: #78716c;  /* 更柔和的灰色提示 */
+  color: var(--muted-warning-text);
   margin: 0.5rem 0 0 0;
   font-weight: 400;
   opacity: 0.8;
@@ -670,7 +638,7 @@ onMounted(() => {
   flex: 1;
   padding: 0.6rem 1rem;
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-size: 0.9rem;
   background: var(--input-bg);
   color: var(--text-primary);
@@ -681,7 +649,7 @@ onMounted(() => {
 .ip-input:focus {
   outline: none;
   border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px var(--accent-color-bg);
+  box-shadow: var(--focus-ring);
 }
 
 .ip-input:disabled {
@@ -697,7 +665,7 @@ onMounted(() => {
   background: var(--accent-color);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
@@ -708,7 +676,7 @@ onMounted(() => {
 .btn-add-ip:hover:not(:disabled) {
   opacity: 0.9;
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px var(--shadow-color);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-add-ip:disabled {
@@ -727,7 +695,7 @@ onMounted(() => {
   padding: 0.5rem 0.75rem;
   background: var(--danger-color-bg);
   color: var(--danger-color);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: 0.85rem;
   border-left: 3px solid var(--danger-color);
 }
@@ -749,7 +717,7 @@ onMounted(() => {
   padding: 0.75rem 1rem;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   transition: all 0.2s;
 }
 
@@ -774,7 +742,7 @@ onMounted(() => {
   padding: 0;
   background: transparent;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s;
@@ -800,21 +768,12 @@ onMounted(() => {
   font-size: 0.9rem;
   background: var(--bg-primary);
   border: 1px dashed var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 }
 
 @media (max-width: 768px) {
   .settings {
     padding: 1rem;
-  }
-
-  .page-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .page-header-actions {
-    margin-top: 1rem;
   }
 
   .save-message {

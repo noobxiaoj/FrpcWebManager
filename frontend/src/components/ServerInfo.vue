@@ -198,7 +198,7 @@ const refreshTimeDiff = computed(() => {
   align-items: center;
   gap: 0.4rem;
   padding: 0.35rem 0.75rem;
-  border-radius: 20px;
+  border-radius: var(--radius-pill);
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -252,7 +252,7 @@ const refreshTimeDiff = computed(() => {
 }
 
 .status-no-task {
-  background: var(--text-secondary-bg, rgba(148, 163, 184, 0.1));
+  background: var(--neutral-soft-bg);
   color: var(--text-secondary);
 }
 
@@ -312,7 +312,7 @@ const refreshTimeDiff = computed(() => {
   padding: 0;
   background: transparent;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.3s;
@@ -339,7 +339,7 @@ const refreshTimeDiff = computed(() => {
   padding: 0;
   background: transparent;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.3s;
