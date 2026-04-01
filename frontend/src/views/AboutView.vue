@@ -11,81 +11,85 @@
     <!-- 内容简介 -->
     <section class="section">
       <h2 class="section-title">内容简介</h2>
-      <div class="update-card current-update markdown-content">
-        <div v-if="introductionContent" v-html="renderMarkdown(introductionContent)"></div>
-        <div v-else class="loading">加载中...</div>
-      </div>
+      <UpdateCard :content="introductionContent" highlighted />
     </section>
 
     <!-- 当前更新 -->
     <section class="section">
       <h2 class="section-title">当前更新</h2>
-      <div class="update-card current-update markdown-content">
-        <div v-if="latestUpdate" v-html="renderMarkdown(latestUpdate)"></div>
-        <div v-else class="loading">加载中...</div>
-      </div>
+      <UpdateCard :content="latestUpdate" highlighted />
     </section>
 
     <!-- 以前更新 -->
     <section class="section">
       <h2 class="section-title" id="history-title">历史更新</h2>
       <div class="update-history">
-        <div v-for="(update, index) in paginatedUpdates" :key="index" class="update-card markdown-content">
-          <div v-html="renderMarkdown(update)"></div>
-        </div>
+        <UpdateCard v-for="(update, index) in paginatedUpdates" :key="index" :content="update" />
       </div>
 
       <!-- 分页控件 -->
       <div v-if="totalPages > 1" class="pagination">
-        <button
+        <AppButton
           @click="goToPage(1)"
           :disabled="currentPage === 1"
           class="pagination-btn"
           title="第一页"
+          preserve-style
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="11 17 6 12 11 7"></polyline>
-            <polyline points="18 17 13 12 18 7"></polyline>
-          </svg>
-        </button>
+          <template #icon>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="11 17 6 12 11 7"></polyline>
+              <polyline points="18 17 13 12 18 7"></polyline>
+            </svg>
+          </template>
+        </AppButton>
 
-        <button
+        <AppButton
           @click="goToPage(currentPage - 1)"
           :disabled="currentPage === 1"
           class="pagination-btn"
           title="上一页"
+          preserve-style
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
-        </button>
+          <template #icon>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </template>
+        </AppButton>
 
         <div class="pagination-info">
           {{ currentPage }} / {{ totalPages }}
         </div>
 
-        <button
+        <AppButton
           @click="goToPage(currentPage + 1)"
           :disabled="currentPage === totalPages"
           class="pagination-btn"
           title="下一页"
+          preserve-style
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </button>
+          <template #icon>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </template>
+        </AppButton>
 
-        <button
+        <AppButton
           @click="goToPage(totalPages)"
           :disabled="currentPage === totalPages"
           class="pagination-btn"
           title="最后一页"
+          preserve-style
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="13 17 18 12 13 7"></polyline>
-            <polyline points="6 17 11 12 6 7"></polyline>
-          </svg>
-        </button>
+          <template #icon>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="13 17 18 12 13 7"></polyline>
+              <polyline points="6 17 11 12 6 7"></polyline>
+            </svg>
+          </template>
+        </AppButton>
       </div>
     </section>
   </div>
@@ -93,17 +97,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import MarkdownIt from 'markdown-it'
-
-const md = new MarkdownIt({
-  html: true,
-  linkify: true,
-  typographer: true
-})
-
-const renderMarkdown = (content) => {
-  return md.render(content)
-}
+import AppButton from '@/components/AppButton.vue'
+import UpdateCard from '@/components/UpdateCard.vue'
 
 const introductionContent = ref('')
 const latestUpdate = ref('')
@@ -355,36 +350,10 @@ onMounted(() => {
   padding-left: 1rem;
 }
 
-.update-card {
-  background: var(--card-bg);
-  padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px var(--shadow-color);
-  margin-bottom: 0.5rem;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.update-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px var(--shadow-color);
-}
-
-.current-update {
-  border-left: 4px solid var(--accent-color);
-}
-
 .update-history {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-}
-
-/* 加载状态样式 */
-.loading {
-  color: var(--text-secondary);
-  text-align: center;
-  padding: 2rem;
-  font-style: italic;
 }
 
 /* 错误提示样式 */
@@ -410,56 +379,6 @@ onMounted(() => {
   font-family: monospace;
   font-size: 0.9rem;
   line-height: 1.6;
-}
-
-/* Markdown 内容样式 */
-.markdown-content {
-  line-height: 1.8;
-  color: var(--text-secondary);
-}
-
-.markdown-content :deep(h4) {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--accent-color);
-  background: var(--accent-color-bg);
-  padding: 0.25rem 0.75rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  display: inline-block;
-}
-
-.markdown-content :deep(ul) {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.markdown-content :deep(li) {
-  padding: 0.5rem 0;
-  color: var(--text-secondary);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.markdown-content :deep(li:last-child) {
-  border-bottom: none;
-}
-
-.markdown-content :deep(strong) {
-  color: var(--text-primary);
-  font-weight: 600;
-}
-
-.markdown-content :deep(code) {
-  background: var(--accent-color-bg);
-  color: var(--accent-color);
-  padding: 0.2rem 0.4rem;
-  border-radius: 3px;
-  font-size: 0.9em;
-}
-
-.markdown-content :deep(p) {
-  margin: 0.5rem 0;
 }
 
 /* 分页控件样式 */
@@ -558,10 +477,6 @@ onMounted(() => {
 
   .section-title {
     font-size: 1.25rem;
-  }
-
-  .markdown-content :deep(h4) {
-    font-size: 1rem;
   }
 
   .pagination {

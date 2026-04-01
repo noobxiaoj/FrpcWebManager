@@ -1,175 +1,125 @@
 <template>
   <div class="settings">
     <div class="page-header">
-      <h1 class="page-title">系统设置</h1>
-      <p class="page-description">配置 frpc 管理器的各项参数</p>
+      <div class="page-header-left">
+        <h1 class="page-title">系统设置</h1>
+      </div>
+      <div class="page-header-actions">
+        <AppButton
+          @click="saveSettings"
+          :disabled="saving || !hasChanges"
+          class="btn-save"
+          preserve-style
+        >
+          <svg v-if="saving" class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" stroke-dasharray="31.4" stroke-dashoffset="10"></circle>
+          </svg>
+          <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+          {{ saving ? '保存中...' : '保存设置' }}
+        </AppButton>
+        <AppButton
+          v-if="hasChanges"
+          @click="resetSettings"
+          :disabled="saving"
+          class="btn-reset"
+          preserve-style
+        >
+          重置
+        </AppButton>
+      </div>
     </div>
 
     <div class="settings-container">
       <div class="setting-section">
         <h2 class="section-title">服务器显示设置</h2>
 
-        <div class="setting-item">
-          <div class="setting-info">
-            <label class="setting-label" for="showServerPort">
-              显示进程端口
-            </label>
-            <p class="setting-description">
-              控制是否在服务器页面显示 frpc webServer 端口信息
-            </p>
-          </div>
-          <div class="setting-control">
-            <label class="switch">
-              <input
-                id="showServerPort"
-                type="checkbox"
-                v-model="settings.showServerPort"
-                @change="handleToggleChange"
-                :disabled="saving"
-              />
-              <span class="slider"></span>
-            </label>
-          </div>
-        </div>
+        <SettingItem
+          id="showServerPort"
+          label="显示进程端口"
+          description="控制是否在服务器页面显示 frpc webServer 端口信息"
+        >
+          <Switch id="showServerPort" v-model="settings.showServerPort" :disabled="saving" />
+        </SettingItem>
 
-        <div class="setting-item">
-          <div class="setting-info">
-            <label class="setting-label" for="showServerName">
-              任务显示服务器名称
-            </label>
-            <p class="setting-description">
-              控制在任务列表和任务详情中显示服务器名称而非IP地址
-            </p>
-          </div>
-          <div class="setting-control">
-            <label class="switch">
-              <input
-                id="showServerName"
-                type="checkbox"
-                v-model="settings.showServerName"
-                @change="handleToggleChange"
-                :disabled="saving"
-              />
-              <span class="slider"></span>
-            </label>
-          </div>
-        </div>
+        <SettingItem
+          id="showServerName"
+          label="任务显示服务器名称"
+          description="控制在任务列表和任务详情中显示服务器名称而非IP地址"
+        >
+          <Switch id="showServerName" v-model="settings.showServerName" :disabled="saving" />
+        </SettingItem>
       </div>
 
       <div class="setting-section">
         <h2 class="section-title">数据刷新设置</h2>
 
-        <div class="setting-item">
-          <div class="setting-info">
-            <label class="setting-label" for="refreshInterval">
-              刷新间隔
-            </label>
-            <p class="setting-description">
-              日志和运行时间的自动刷新间隔，"不刷新"表示手动刷新
-            </p>
-          </div>
-          <div class="setting-control">
-            <select
-              id="refreshInterval"
-              v-model.number="settings.refreshInterval"
-              @change="handleIntervalChange"
-              :disabled="saving"
-              class="interval-select"
-            >
-              <option :value="0">不刷新</option>
-              <option :value="1">1 秒</option>
-              <option :value="3">3 秒</option>
-              <option :value="10">10 秒</option>
-              <option :value="30">30 秒</option>
-              <option :value="60">1 分钟</option>
-              <option :value="120">2 分钟</option>
-            </select>
-          </div>
-        </div>
+        <SettingItem
+          id="refreshInterval"
+          label="刷新间隔"
+          description='日志和运行时间的自动刷新间隔，"不刷新"表示手动刷新'
+        >
+          <select
+            id="refreshInterval"
+            v-model.number="settings.refreshInterval"
+            :disabled="saving"
+            class="interval-select"
+          >
+            <option :value="0">不刷新</option>
+            <option :value="1">1 秒</option>
+            <option :value="3">3 秒</option>
+            <option :value="10">10 秒</option>
+            <option :value="30">30 秒</option>
+            <option :value="60">1 分钟</option>
+            <option :value="120">2 分钟</option>
+          </select>
+        </SettingItem>
 
-        <div class="setting-item">
-          <div class="setting-info">
-            <label class="setting-label" for="showRefreshTime">
-              显示刷新时间
-            </label>
-            <p class="setting-description">
-              控制是否在服务器页面显示距离上次刷新的时间
-            </p>
-          </div>
-          <div class="setting-control">
-            <label class="switch">
-              <input
-                id="showRefreshTime"
-                type="checkbox"
-                v-model="settings.showRefreshTime"
-                @change="handleToggleChange"
-                :disabled="saving"
-              />
-              <span class="slider"></span>
-            </label>
-          </div>
-        </div>
+        <SettingItem
+          id="showRefreshTime"
+          label="显示刷新时间"
+          description="控制是否在服务器页面显示距离上次刷新的时间"
+        >
+          <Switch id="showRefreshTime" v-model="settings.showRefreshTime" :disabled="saving" />
+        </SettingItem>
       </div>
 
       <div class="setting-section">
         <h2 class="section-title">前端服务设置</h2>
 
-        <div class="setting-item">
-          <div class="setting-info">
-            <label class="setting-label" for="frontendPort">
-              前端服务端口
-            </label>
-            <p class="setting-description">
-              前端开发服务器监听的端口号（范围：1024-65535）
-            </p>
-            <p class="setting-warning">
-              修改端口后需要重启前端服务才能生效
-            </p>
-          </div>
-          <div class="setting-control">
-            <input
-              id="frontendPort"
-              type="number"
-              v-model.number="settings.frontendPort"
-              @change="handlePortChange"
-              :disabled="saving"
-              class="port-input"
-              min="1024"
-              max="65535"
-              step="1"
-            />
-          </div>
-        </div>
+        <SettingItem
+          id="frontendPort"
+          label="前端服务端口"
+          description="前端开发服务器监听的端口号（范围：1024-65535）"
+          warning="修改端口后需要重启前端服务才能生效"
+        >
+          <input
+            id="frontendPort"
+            type="number"
+            v-model.number="settings.frontendPort"
+            :disabled="saving"
+            class="port-input"
+            min="1024"
+            max="65535"
+            step="1"
+          />
+        </SettingItem>
       </div>
 
       <div class="setting-section">
         <h2 class="section-title">访问控制设置</h2>
 
-        <div class="setting-item">
-          <div class="setting-info">
-            <label class="setting-label" for="enableIPWhitelist">
-              启用IP白名单
-            </label>
-            <p class="setting-description">
-              开启后，只有白名单中的IP地址可以访问系统
-            </p>
-            <p class="setting-warning">
-              白名单设置修改后需要重启容器才能生效
-            </p>
-          </div>
-          <div class="setting-control">
-            <label class="switch">
-              <input
-                id="enableIPWhitelist"
-                type="checkbox"
-                v-model="settings.enableIPWhitelist"
-                @change="handleToggleChange"
-                :disabled="saving"
-              />
-              <span class="slider"></span>
-            </label>
-          </div>
-        </div>
+        <SettingItem
+          id="enableIPWhitelist"
+          label="启用IP白名单"
+          description="开启后，只有白名单中的IP地址可以访问系统"
+          warning="白名单设置修改后需要重启容器才能生效"
+        >
+          <Switch id="enableIPWhitelist" v-model="settings.enableIPWhitelist" :disabled="saving" />
+        </SettingItem>
 
         <!-- IP白名单管理 -->
         <div v-if="settings.enableIPWhitelist" class="whitelist-manager">
@@ -193,17 +143,20 @@
                   class="ip-input"
                   :disabled="saving"
                 />
-                <button
+                <AppButton
                   @click="addIP"
                   :disabled="saving || !newIP.trim()"
                   class="btn-add-ip"
+                  preserve-style
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                  </svg>
+                  <template #icon>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                  </template>
                   添加
-                </button>
+                </AppButton>
               </div>
 
               <div v-if="ipError" class="ip-error">
@@ -217,16 +170,19 @@
                   class="whitelist-item"
                 >
                   <span class="ip-address">{{ ip }}</span>
-                  <button
+                  <AppButton
                     @click="removeIP(index)"
                     class="btn-remove-ip"
                     title="删除"
+                    preserve-style
                   >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </button>
+                    <template #icon>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </template>
+                  </AppButton>
                 </div>
               </div>
 
@@ -236,6 +192,7 @@
             </div>
           </div>
         </div>
+
       </div>
     </div>
 
@@ -246,9 +203,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useTaskStore } from '@/stores/task'
 import { getApiBaseUrl } from '@/utils/api'
+import AppButton from '@/components/AppButton.vue'
+import SettingItem from '@/components/SettingItem.vue'
+import Switch from '@/components/AppSwitch.vue'
 
 const taskStore = useTaskStore()
 
@@ -267,6 +227,7 @@ const saveMessage = ref('')
 const saveSuccess = ref(false)
 const newIP = ref('')
 const ipError = ref('')
+const originalSettings = ref(null)
 
 // 加载设置
 const loadSettings = async () => {
@@ -277,7 +238,8 @@ const loadSettings = async () => {
     }
     const data = await response.json()
     if (data.data) {
-      settings.value = data.data
+      settings.value = JSON.parse(JSON.stringify(data.data))
+      originalSettings.value = JSON.parse(JSON.stringify(data.data))
       // 同步到 taskStore
       taskStore.showServerName = data.data.showServerName || false
     }
@@ -287,16 +249,17 @@ const loadSettings = async () => {
   }
 }
 
-// 处理开关变化
-const handleToggleChange = async () => {
-  // 同步 showServerName 到 taskStore
-  taskStore.showServerName = settings.value.showServerName
-  await saveSettings()
-}
+// 检测是否有修改
+const hasChanges = computed(() => {
+  if (!originalSettings.value) return false
+  return JSON.stringify(settings.value) !== JSON.stringify(originalSettings.value)
+})
 
-// 处理刷新间隔变化
-const handleIntervalChange = async () => {
-  await saveSettings()
+// 重置设置到原始状态
+const resetSettings = () => {
+  if (originalSettings.value) {
+    settings.value = JSON.parse(JSON.stringify(originalSettings.value))
+  }
 }
 
 // 端口验证函数
@@ -308,23 +271,14 @@ const validatePort = (port) => {
   return true
 }
 
-// 处理端口变化
-const handlePortChange = async () => {
+// 保存设置
+const saveSettings = async () => {
+  // 端口验证
   if (!validatePort(settings.value.frontendPort)) {
     showSaveMessage('端口号必须在 1024-65535 之间', false)
-    // 重新加载设置恢复原值
-    await loadSettings()
     return
   }
 
-  await saveSettings()
-  if (saveSuccess.value) {
-    showSaveMessage('端口已保存，请重启前端服务以生效', true)
-  }
-}
-
-// 保存设置
-const saveSettings = async () => {
   saving.value = true
   saveMessage.value = ''
 
@@ -341,11 +295,16 @@ const saveSettings = async () => {
       throw new Error('保存设置失败')
     }
 
-    return true
+    // 同步 showServerName 到 taskStore
+    taskStore.showServerName = settings.value.showServerName || false
+
+    // 更新原始设置
+    originalSettings.value = JSON.parse(JSON.stringify(settings.value))
+
+    showSaveMessage('设置已保存', true)
   } catch (error) {
     console.error('保存设置失败:', error)
     showSaveMessage('保存设置失败', false)
-    return false
   } finally {
     saving.value = false
   }
@@ -405,7 +364,7 @@ const validateIP = (ip) => {
 }
 
 // 添加IP到白名单
-const addIP = async () => {
+const addIP = () => {
   const trimmed = newIP.value.trim()
 
   if (!trimmed) {
@@ -433,28 +392,16 @@ const addIP = async () => {
   // 清空输入框和错误信息
   newIP.value = ''
   ipError.value = ''
-
-  // 保存设置
-  const success = await saveSettings()
-  if (success) {
-    showSaveMessage('IP已添加到白名单', true)
-  }
 }
 
 // 从白名单删除IP
-const removeIP = async (index) => {
+const removeIP = (index) => {
   if (settings.value.ipWhitelist && settings.value.ipWhitelist.length > 0) {
-    const removed = settings.value.ipWhitelist.splice(index, 1)
+    settings.value.ipWhitelist.splice(index, 1)
 
     // 如果删除了所有IP，自动关闭白名单
     if (settings.value.ipWhitelist.length === 0) {
       settings.value.enableIPWhitelist = false
-    }
-
-    // 保存设置
-    const success = await saveSettings()
-    if (success) {
-      showSaveMessage(`已从白名单删除: ${removed}`, true)
     }
   }
 }
@@ -472,7 +419,21 @@ onMounted(() => {
 }
 
 .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
   margin-bottom: 2rem;
+}
+
+.page-header-left {
+  flex: 1;
+}
+
+.page-header-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-shrink: 0;
 }
 
 .page-title {
@@ -494,6 +455,76 @@ onMounted(() => {
   gap: 2rem;
 }
 
+/* 保存按钮样式 */
+.btn-save {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.btn-save:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.btn-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-save svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.btn-save .spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.btn-reset {
+  padding: 0.6rem 1.25rem;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.btn-reset:hover:not(:disabled) {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+.btn-reset:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .setting-section {
   background: var(--card-bg);
   border-radius: 16px;
@@ -509,37 +540,6 @@ onMounted(() => {
   margin: 0 0 1.5rem 0;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--border-color);
-}
-
-.setting-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 2rem;
-  padding: 1rem 0;
-}
-
-.setting-info {
-  flex: 1;
-}
-
-.setting-label {
-  display: block;
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
-}
-
-.setting-description {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin: 0;
-  line-height: 1.5;
-}
-
-.setting-control {
-  flex-shrink: 0;
 }
 
 /* 下拉选择框样式 */
@@ -573,62 +573,6 @@ onMounted(() => {
 
 .interval-select:hover {
   border-color: var(--accent-color);
-}
-
-/* 开关样式 */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 50px;
-  height: 26px;
-}
-
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--border-color);
-  transition: 0.3s;
-  border-radius: 26px;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 20px;
-  width: 20px;
-  left: 3px;
-  bottom: 3px;
-  background-color: white;
-  transition: 0.3s;
-  border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-input:checked + .slider {
-  background-color: var(--accent-color);
-}
-
-input:checked + .slider:before {
-  transform: translateX(24px);
-}
-
-input:disabled + .slider {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.slider:hover {
-  box-shadow: 0 0 0 3px var(--accent-color-bg);
 }
 
 /* 保存消息 */
@@ -864,14 +808,13 @@ input:disabled + .slider {
     padding: 1rem;
   }
 
-  .setting-item {
+  .page-header {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
+    align-items: stretch;
   }
 
-  .setting-control {
-    align-self: flex-end;
+  .page-header-actions {
+    margin-top: 1rem;
   }
 
   .save-message {

@@ -1,13 +1,15 @@
 <template>
   <div class="task-create">
     <div class="page-header">
-      <button class="btn-back" @click="goBack">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="19" y1="12" x2="5" y2="12"></line>
-          <polyline points="12 19 5 12 12 5"></polyline>
-        </svg>
+      <AppButton class="btn-back" preserve-style @click="goBack">
+        <template #icon>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+        </template>
         返回
-      </button>
+      </AppButton>
       <h1 class="page-title">创建 FRPC 任务</h1>
       <div></div>
     </div>
@@ -98,13 +100,15 @@
       <section class="form-section">
         <div class="section-header">
           <h2 class="section-title">FRPC 配置</h2>
-          <button type="button" class="btn-add" @click="addProxy">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
+          <AppButton type="button" class="btn-add" preserve-style @click="addProxy">
+            <template #icon>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </template>
             添加端口
-          </button>
+          </AppButton>
         </div>
 
         <div v-if="form.proxies.length === 0" class="empty-proxies">
@@ -124,10 +128,10 @@
 
       <!-- 提交按钮 -->
       <div class="form-actions">
-        <button type="button" class="btn-secondary" @click="goBack">取消</button>
-        <button type="submit" class="btn-primary" :disabled="submitting">
+        <AppButton type="button" class="btn-secondary" preserve-style @click="goBack">取消</AppButton>
+        <AppButton type="submit" class="btn-primary" preserve-style :disabled="submitting">
           {{ submitting ? '创建中...' : '创建任务' }}
-        </button>
+        </AppButton>
       </div>
     </form>
   </div>
@@ -138,6 +142,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTaskStore } from '@/stores/task'
 import { serverAPI } from '@/api/server'
+import AppButton from '@/components/AppButton.vue'
 import ProxyConfigCard from '@/components/ProxyConfigCard.vue'
 
 const router = useRouter()
