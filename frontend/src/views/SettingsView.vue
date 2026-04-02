@@ -130,10 +130,24 @@
             type="number"
             v-model.number="settings.frontendPort"
             :disabled="saving"
-            class="port-input"
+            class="port-input text-input"
             min="1024"
             max="65535"
             step="1"
+          />
+        </SettingItem>
+
+        <SettingItem
+          id="connectionIdentifier"
+          :label="t('settings.fields.connectionIdentifier')"
+          :warning="t('settings.warnings.connectionIdentifier')"
+        >
+          <input
+            id="connectionIdentifier"
+            type="text"
+            v-model="settings.connectionIdentifier"
+            :disabled="saving"
+            class="text-input"
           />
         </SettingItem>
 
@@ -282,6 +296,7 @@ const settings = ref({
   showServerName: false,
   language: 'zh-CN',
   frontendPort: 4500,
+  connectionIdentifier: '',
   enableIPWhitelist: false,
   ipWhitelist: [],
   navigationBar: {
@@ -317,9 +332,12 @@ const loadSettings = async () => {
     }
     const data = await response.json()
     if (data.data) {
+      // 统一补齐前端依赖的新字段，确保旧版 settings.json 或旧接口响应
+      // 在未包含这些字段时，页面依然能稳定渲染和保存。
       const normalizedSettings = {
         ...JSON.parse(JSON.stringify(data.data)),
         language: data.data.language || 'zh-CN',
+        connectionIdentifier: data.data.connectionIdentifier || '',
         navigationBar: {
           showAboutButton: data.data.navigationBar?.showAboutButton ?? true,
           showLockButton: data.data.navigationBar?.showLockButton ?? true,
@@ -770,29 +788,48 @@ onMounted(() => {
 
 /* 端口输入框样式 */
 .port-input {
-  width: 120px;
+  text-align: left;
+}
+
+/* 隐藏数字输入框默认的上下调节按钮，避免与普通文本输入框观感不一致。 */
+.port-input::-webkit-outer-spin-button,
+.port-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.port-input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* 通用文本输入框样式。
+ * 这里给“连接标识”等轻量文本配置复用，保持与端口/IP 输入框一致的交互反馈。 */
+.text-input {
+  width: 140px;
+  max-width: 100%;
+  box-sizing: border-box;
+  display: block;
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   font-size: 1rem;
   background: var(--input-bg);
   color: var(--text-primary);
-  text-align: center;
   transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-.port-input:focus {
+.text-input:focus {
   outline: none;
   border-color: var(--accent-color);
   box-shadow: var(--focus-ring);
 }
 
-.port-input:disabled {
+.text-input:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.port-input:hover {
+.text-input:hover {
   border-color: var(--accent-color);
 }
 

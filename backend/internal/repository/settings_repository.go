@@ -119,6 +119,10 @@ func normalizeSettings(settings *model.SystemSettings) (*model.SystemSettings, e
 		normalized.FrontendPort = defaultSettings.FrontendPort
 	}
 
+	// 新增的连接标识字段允许为空，但仍统一去掉首尾空格，
+	// 避免用户误填空格后保存出看不见的差异。
+	normalized.ConnectionIdentifier = strings.TrimSpace(normalized.ConnectionIdentifier)
+
 	// 统一收敛语言字段，确保旧版 settings.json 缺失该字段时自动补齐默认值，
 	// 也避免未来前端传入非法值导致配置文件中出现不可识别内容。
 	switch strings.TrimSpace(normalized.Language) {

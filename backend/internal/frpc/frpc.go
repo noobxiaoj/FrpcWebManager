@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/xiaoj/frpc_webmanager/internal/model"
+	"github.com/xiaoj/frpc_webmanager/internal/utils"
 )
 
 const (
@@ -95,6 +96,7 @@ type FrpcManager struct {
 	processMutex      sync.RWMutex
 	logService        *LogCollector
 	configDir         string
+	settingsPath      string
 	logDir            string
 	allocatedWebPorts map[int]string // webServer端口 -> serverKey, 用于跟踪已分配的端口
 	allocatedPorts    sync.RWMutex   // 保护 allocatedWebPorts 的读写锁
@@ -124,6 +126,7 @@ func NewFrpcManager(configDir string) (*FrpcManager, error) {
 		binaryManager:     &FrpcBinaryManager{binDir: binDir},
 		processes:         make(map[string]*ManagedProcess),
 		configDir:         absConfigDir,
+		settingsPath:      filepath.Join(filepath.Dir(absConfigDir), "settings.json"),
 		logDir:            logDir,
 		allocatedWebPorts: make(map[int]string),
 	}
@@ -419,6 +422,7 @@ func (m *FrpcManager) generateConfig(serverAddr string, serverPort int, authToke
 
 	// 构建TOML配置内容
 	var configBuilder strings.Builder
+	connectionIdentifier := utils.LoadConnectionIdentifier(m.settingsPath)
 
 	// 写入服务器通用配置
 	configBuilder.WriteString(fmt.Sprintf("serverAddr = \"%s\"\n", serverAddr))
@@ -445,11 +449,9 @@ func (m *FrpcManager) generateConfig(serverAddr string, serverPort int, authToke
 		}
 
 		for _, proxy := range task.Proxies {
-			// 使用任务ID_代理名称确保唯一性
-			proxyName := fmt.Sprintf("%s_%s", task.ID, proxy.Name)
-			if proxy.Name == "" {
-				proxyName = fmt.Sprintf("%s_proxy_%s", task.ID, proxy.ID)
-			}
+			// 运行态生成的 frpc 配置必须与导出配置保持同一命名规则，
+			// 这样日志里的代理名才能稳定对应到用户在设置中看到的连接标识。
+			proxyName := utils.GenerateProxyName(connectionIdentifier, task.Name, proxy.Name)
 
 			configBuilder.WriteString("[[proxies]]\n")
 			configBuilder.WriteString(fmt.Sprintf("name = \"%s\"\n", proxyName))

@@ -46,6 +46,7 @@ type SystemSettings struct {
 	ShowServerName    bool                 `json:"showServerName"`    // 是否在任务中显示服务器名称而非IP
 	Language          string               `json:"language"`          // 当前界面语言，仅保存选择结果，暂不触发翻译逻辑
 	FrontendPort      int                  `json:"frontendPort"`      // 前端服务端口（默认 4500）
+	ConnectionIdentifier string            `json:"connectionIdentifier"` // 连接标识，预留给后续连接能力使用
 	EnableIPWhitelist bool                 `json:"enableIPWhitelist"` // 是否启用IP白名单
 	IPWhitelist       []string             `json:"ipWhitelist"`       // IP白名单列表
 	NavigationBar     NavigationBarSettings `json:"navigationBar"`     // 顶部导航栏按钮显示设置
@@ -61,6 +62,7 @@ func DefaultSystemSettings() *SystemSettings {
 		ShowServerName:    false, // 默认不显示服务器名称
 		Language:          LanguageZhCN, // 默认语言为简体中文
 		FrontendPort:      4500,  // 默认前端端口 4500
+		ConnectionIdentifier: "", // 默认连接标识为空，便于后续按需启用
 		EnableIPWhitelist: false, // 默认不启用IP白名单
 		IPWhitelist:       []string{}, // 默认白名单为空
 		NavigationBar: NavigationBarSettings{
@@ -94,6 +96,7 @@ func (s *SystemSettings) Clone() *SystemSettings {
 		ShowServerName:    s.ShowServerName,
 		Language:          s.Language,
 		FrontendPort:      s.FrontendPort,
+		ConnectionIdentifier: s.ConnectionIdentifier,
 		EnableIPWhitelist: s.EnableIPWhitelist,
 		IPWhitelist:       ipWhitelist,
 		NavigationBar: NavigationBarSettings{

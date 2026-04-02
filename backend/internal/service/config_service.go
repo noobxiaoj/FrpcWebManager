@@ -8,11 +8,13 @@ import (
 	"sync"
 
 	"github.com/xiaoj/frpc_webmanager/internal/model"
+	"github.com/xiaoj/frpc_webmanager/internal/utils"
 )
 
 // ConfigService 配置服务
 type ConfigService struct {
 	configDir   string
+	settingsPath string
 	configMutex sync.Mutex
 }
 
@@ -25,7 +27,8 @@ func NewConfigService(dataDir string) (*ConfigService, error) {
 	}
 
 	return &ConfigService{
-		configDir: configDir,
+		configDir:    configDir,
+		settingsPath: filepath.Join(dataDir, "settings.json"),
 	}, nil
 }
 
@@ -38,6 +41,7 @@ func (s *ConfigService) GenerateTaskConfig(task *model.Task) (string, error) {
 func (s *ConfigService) GenerateMergedConfig(serverAddr string, serverPort int, authToken string, tasks []*model.Task) (string, error) {
 	// 构建 TOML 配置内容
 	var configBuilder strings.Builder
+	connectionIdentifier := utils.LoadConnectionIdentifier(s.settingsPath)
 
 	// 写入服务器通用配置
 	configBuilder.WriteString(fmt.Sprintf("serverAddr = \"%s\"\n", serverAddr))
@@ -54,11 +58,9 @@ func (s *ConfigService) GenerateMergedConfig(serverAddr string, serverPort int, 
 		}
 
 		for _, proxy := range task.Proxies {
-			// 使用任务ID_代理名称确保唯一性
-			proxyName := fmt.Sprintf("%s_%s", task.ID, proxy.Name)
-			if proxy.Name == "" {
-				proxyName = fmt.Sprintf("%s_proxy_%s", task.ID, proxy.ID)
-			}
+			// 代理名称统一按“连接标识-任务名-端口名”生成。
+			// 当连接标识为空时，会自动回退成“4位随机字符-任务名-端口名”。
+			proxyName := utils.GenerateProxyName(connectionIdentifier, task.Name, proxy.Name)
 
 			configBuilder.WriteString("[[proxies]]\n")
 			configBuilder.WriteString(fmt.Sprintf("name = \"%s\"\n", proxyName))
@@ -153,6 +155,7 @@ func (s *ConfigService) SaveMergedConfigAll(serverAddr string, serverPort int, a
 
 	// 构建 TOML 配置内容
 	var configBuilder strings.Builder
+	connectionIdentifier := utils.LoadConnectionIdentifier(s.settingsPath)
 
 	// 写入服务器通用配置
 	configBuilder.WriteString(fmt.Sprintf("serverAddr = \"%s\"\n", serverAddr))
@@ -165,11 +168,8 @@ func (s *ConfigService) SaveMergedConfigAll(serverAddr string, serverPort int, a
 	// 合并所有任务的代理配置(包含所有状态的任务)
 	for _, task := range tasks {
 		for _, proxy := range task.Proxies {
-			// 使用任务ID_代理名称确保唯一性
-			proxyName := fmt.Sprintf("%s_%s", task.ID, proxy.Name)
-			if proxy.Name == "" {
-				proxyName = fmt.Sprintf("%s_proxy_%s", task.ID, proxy.ID)
-			}
+			// 导出/预览配置也沿用同一套代理命名规则，避免界面看到的配置与运行态不一致。
+			proxyName := utils.GenerateProxyName(connectionIdentifier, task.Name, proxy.Name)
 
 			configBuilder.WriteString("[[proxies]]\n")
 			configBuilder.WriteString(fmt.Sprintf("name = \"%s\"\n", proxyName))

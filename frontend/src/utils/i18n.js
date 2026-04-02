@@ -140,13 +140,15 @@ const messages = {
         showThemeButton: '显示主题按键',
         refreshInterval: '刷新间隔',
         frontendPort: '前端服务端口',
+        connectionIdentifier: '连接标识',
         enableIPWhitelist: '启用IP白名单',
         passwordSetting: '设置启动密码',
         ipWhitelist: 'IP白名单'
       },
       warnings: {
-        frontendPort: '修改端口后重启前端服务生效',
-        ipWhitelist: '白名单设置修改后重启容器生效'
+        frontendPort: '重启后生效',
+        connectionIdentifier: '重启后生效',
+        ipWhitelist: '重启后生效'
       },
       refreshOptions: {
         noRefresh: '不刷新',
@@ -277,13 +279,15 @@ const messages = {
         showThemeButton: 'Show Theme button',
         refreshInterval: 'Refresh interval',
         frontendPort: 'Frontend port',
+        connectionIdentifier: 'Connection identifier',
         enableIPWhitelist: 'Enable IP whitelist',
         passwordSetting: 'Startup password',
         ipWhitelist: 'IP whitelist'
       },
       warnings: {
-        frontendPort: 'Changes take effect after restarting the frontend service',
-        ipWhitelist: 'Changes take effect after restarting the container'
+        frontendPort: 'Changes take effect after restart',
+        connectionIdentifier: 'Changes take effect after restart',
+        ipWhitelist: 'Changes take effect after restart'
       },
       refreshOptions: {
         noRefresh: 'Do not refresh',
