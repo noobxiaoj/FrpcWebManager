@@ -421,7 +421,8 @@ onUnmounted(() => {
 /* 桌面端导航 */
 .desktop-nav {
   display: flex;
-  gap: 20px;
+  /* 收紧顶部导航项之间的间距，让“服务器 / 任务 / 设置 / 关于”更紧凑。 */
+  gap: 12px;
   align-items: center;
 }
 
@@ -429,7 +430,8 @@ onUnmounted(() => {
   color: var(--header-text);
   text-decoration: none;
   font-weight: 500;
-  padding: 0.5rem 1rem;
+  /* 略微减小横向内边距，避免导航项之间显得过于松散。 */
+  padding: 0.5rem 0.75rem;
   border-radius: var(--radius-xs);
   transition: all 0.3s;
   position: relative;
