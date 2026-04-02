@@ -8,7 +8,8 @@
         <slot name="description">{{ description }}</slot>
       </p>
       <p v-if="warning" class="setting-warning">
-        {{ warning }}
+        <span class="setting-warning-icon" aria-hidden="true">!</span>
+        <span>{{ warning }}</span>
       </p>
     </div>
     <div class="setting-control">
@@ -83,11 +84,28 @@ const hasDescription = computed(() => {
 }
 
 .setting-warning {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   font-size: 0.85rem;
   color: var(--muted-warning-text);
   margin: 0.5rem 0 0 0;
   font-weight: 400;
   opacity: 0.8;
+}
+
+.setting-warning-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .setting-control {

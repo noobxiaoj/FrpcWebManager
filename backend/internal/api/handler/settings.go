@@ -76,6 +76,7 @@ func (h *SettingsHandler) GetSettings(c *gin.Context) {
 		"frontendPort":      settings.FrontendPort,
 		"enableIPWhitelist": settings.EnableIPWhitelist,
 		"ipWhitelist":       settings.IPWhitelist,
+		"navigationBar":     settings.NavigationBar,
 		"passwordAuth":      settings.ToPasswordAuthInfo(),
 	})
 }
@@ -120,6 +121,7 @@ func (h *SettingsHandler) UpdateSettings(c *gin.Context) {
 		"frontendPort":      savedSettings.FrontendPort,
 		"enableIPWhitelist": savedSettings.EnableIPWhitelist,
 		"ipWhitelist":       savedSettings.IPWhitelist,
+		"navigationBar":     savedSettings.NavigationBar,
 	})
 
 	SuccessResponse(c, gin.H{
@@ -133,6 +135,7 @@ func (h *SettingsHandler) UpdateSettings(c *gin.Context) {
 			"frontendPort":      savedSettings.FrontendPort,
 			"enableIPWhitelist": savedSettings.EnableIPWhitelist,
 			"ipWhitelist":       savedSettings.IPWhitelist,
+			"navigationBar":     savedSettings.NavigationBar,
 		},
 	})
 }

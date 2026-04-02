@@ -18,6 +18,15 @@ const authState = ref({
   },
   authenticated: true
 })
+const appSettings = ref({
+  language: 'zh-CN',
+  navigationBar: {
+    showAboutButton: true,
+    showLockButton: true,
+    showLanguageButton: true,
+    showThemeButton: true
+  }
+})
 
 const toggleMobileMenu = () => {
   mobileMenuOpen.value = !mobileMenuOpen.value
@@ -27,6 +36,12 @@ const isPasswordProtected = computed(() => authState.value.passwordAuth?.enabled
 const isAuthenticated = computed(() => authState.value.authenticated)
 const showPasswordGate = computed(() => !authLoading.value && isPasswordProtected.value && !isAuthenticated.value)
 const { t } = useI18n()
+const navigationBarSettings = computed(() => appSettings.value.navigationBar || {
+  showAboutButton: true,
+  showLockButton: true,
+  showLanguageButton: true,
+  showThemeButton: true
+})
 
 /**
  * 统一处理“登录态已失效”事件。
@@ -95,7 +110,7 @@ const handleLogin = async ({ username, password }) => {
     }
 
     await loadAuthStatus()
-    await loadLanguageSettings()
+    await loadAppSettings()
   } catch (error) {
     console.error('登录失败:', error)
     loginErrorMessage.value = error.message || t('app.auth.loginFallbackError')
@@ -105,12 +120,12 @@ const handleLogin = async ({ username, password }) => {
 }
 
 /**
- * 读取后端保存的语言设置，并同步到全局语言状态。
- * 这样页面刷新、重新登录后都能恢复用户最后一次选择的语言。
+ * 读取后端保存的界面设置，并同步到根组件状态。
+ * 这样页面刷新、重新登录后都能恢复语言与顶部导航按钮显示状态。
  *
  * @returns {Promise<void>}
  */
-const loadLanguageSettings = async () => {
+const loadAppSettings = async () => {
   try {
     const response = await fetch(`${getApiBaseUrl()}/api/settings`, {
       credentials: 'include'
@@ -121,10 +136,40 @@ const loadLanguageSettings = async () => {
     }
 
     const result = await response.json()
-    syncLanguageFromSettings(result.data?.language)
+    applyAppSettings(result.data)
   } catch (error) {
-    console.error('获取语言设置失败:', error)
+    console.error('获取应用设置失败:', error)
   }
+}
+
+/**
+ * 将后端返回的设置对象同步到根组件中。
+ * 目前这里主要消费语言与导航栏按钮显隐配置。
+ *
+ * @param {Object} settings - 后端返回的系统设置
+ */
+const applyAppSettings = (settings = {}) => {
+  appSettings.value = {
+    language: settings.language || 'zh-CN',
+    navigationBar: {
+      showAboutButton: settings.navigationBar?.showAboutButton ?? true,
+      showLockButton: settings.navigationBar?.showLockButton ?? true,
+      showLanguageButton: settings.navigationBar?.showLanguageButton ?? true,
+      showThemeButton: settings.navigationBar?.showThemeButton ?? true
+    }
+  }
+
+  syncLanguageFromSettings(appSettings.value.language)
+}
+
+/**
+ * 响应设置页保存后的本地广播事件。
+ * 这样顶部导航按钮可以在保存后立即切换，不需要手动刷新页面。
+ *
+ * @param {CustomEvent} event - 携带最新设置数据的浏览器事件
+ */
+const handleAppSettingsUpdated = (event) => {
+  applyAppSettings(event.detail || {})
 }
 
 /**
@@ -150,7 +195,7 @@ onMounted(async () => {
   await loadAuthStatus()
 
   if (!showPasswordGate.value) {
-    await loadLanguageSettings()
+    await loadAppSettings()
   }
 
   /**
@@ -158,10 +203,12 @@ onMounted(async () => {
    * 这样即使会话失效，也不会让界面停留在不可操作状态。
    */
   window.addEventListener('auth-expired', handleAuthExpired)
+  window.addEventListener('app-settings-updated', handleAppSettingsUpdated)
 })
 
 onUnmounted(() => {
   window.removeEventListener('auth-expired', handleAuthExpired)
+  window.removeEventListener('app-settings-updated', handleAppSettingsUpdated)
 })
 </script>
 
@@ -203,14 +250,14 @@ onUnmounted(() => {
             <RouterLink to="/">{{ t('app.nav.servers') }}</RouterLink>
             <RouterLink to="/tasks">{{ t('app.nav.tasks') }}</RouterLink>
             <RouterLink to="/settings">{{ t('app.nav.settings') }}</RouterLink>
-            <RouterLink to="/about">{{ t('app.nav.about') }}</RouterLink>
+            <RouterLink v-if="navigationBarSettings.showAboutButton" to="/about">{{ t('app.nav.about') }}</RouterLink>
           </nav>
         </div>
 
         <!-- 顶部功能按钮：语言切换 + 主题切换 -->
         <div class="theme-wrapper">
           <button
-            v-if="isPasswordProtected"
+            v-if="isPasswordProtected && navigationBarSettings.showLockButton"
             class="logout-button"
             @click="handleLogout"
             :aria-label="t('app.auth.logout')"
@@ -235,8 +282,8 @@ onUnmounted(() => {
               <circle cx="12.5" cy="15.5" r="1.2" fill="currentColor" />
             </svg>
           </button>
-          <LanguageToggle />
-          <ThemeToggle />
+          <LanguageToggle v-if="navigationBarSettings.showLanguageButton" />
+          <ThemeToggle v-if="navigationBarSettings.showThemeButton" />
         </div>
       </div>
 
@@ -245,7 +292,7 @@ onUnmounted(() => {
         <RouterLink to="/" @click="mobileMenuOpen = false">{{ t('app.nav.servers') }}</RouterLink>
         <RouterLink to="/tasks" @click="mobileMenuOpen = false">{{ t('app.nav.tasks') }}</RouterLink>
         <RouterLink to="/settings" @click="mobileMenuOpen = false">{{ t('app.nav.settings') }}</RouterLink>
-        <RouterLink to="/about" @click="mobileMenuOpen = false">{{ t('app.nav.about') }}</RouterLink>
+        <RouterLink v-if="navigationBarSettings.showAboutButton" to="/about" @click="mobileMenuOpen = false">{{ t('app.nav.about') }}</RouterLink>
       </nav>
     </header>
 

@@ -58,6 +58,39 @@
       </SettingSection>
 
       <SettingSection
+        :title="t('settings.sections.navigationBar')"
+        section-id="navigation-bar-settings-content"
+      >
+        <SettingItem
+          id="showAboutButton"
+          :label="t('settings.fields.showAboutButton')"
+        >
+          <Switch id="showAboutButton" v-model="settings.navigationBar.showAboutButton" :disabled="saving" />
+        </SettingItem>
+
+        <SettingItem
+          id="showLockButton"
+          :label="t('settings.fields.showLockButton')"
+        >
+          <Switch id="showLockButton" v-model="settings.navigationBar.showLockButton" :disabled="saving" />
+        </SettingItem>
+
+        <SettingItem
+          id="showLanguageButton"
+          :label="t('settings.fields.showLanguageButton')"
+        >
+          <Switch id="showLanguageButton" v-model="settings.navigationBar.showLanguageButton" :disabled="saving" />
+        </SettingItem>
+
+        <SettingItem
+          id="showThemeButton"
+          :label="t('settings.fields.showThemeButton')"
+        >
+          <Switch id="showThemeButton" v-model="settings.navigationBar.showThemeButton" :disabled="saving" />
+        </SettingItem>
+      </SettingSection>
+
+      <SettingSection
         :title="t('settings.sections.dataRefresh')"
         section-id="data-refresh-settings-content"
       >
@@ -83,9 +116,10 @@
       </SettingSection>
 
       <SettingSection
-        :title="t('settings.sections.frontendService')"
-        section-id="frontend-service-settings-content"
+        :title="t('settings.sections.accessControl')"
+        section-id="access-control-settings-content"
       >
+        <!-- 将前端服务端口并入访问控制设置，减少分散的系统级入口。 -->
         <SettingItem
           id="frontendPort"
           :label="t('settings.fields.frontendPort')"
@@ -102,12 +136,7 @@
             step="1"
           />
         </SettingItem>
-      </SettingSection>
 
-      <SettingSection
-        :title="t('settings.sections.accessControl')"
-        section-id="access-control-settings-content"
-      >
         <SettingItem
           id="enableIPWhitelist"
           :label="t('settings.fields.enableIPWhitelist')"
@@ -255,6 +284,12 @@ const settings = ref({
   frontendPort: 4500,
   enableIPWhitelist: false,
   ipWhitelist: [],
+  navigationBar: {
+    showAboutButton: true,
+    showLockButton: true,
+    showLanguageButton: true,
+    showThemeButton: true
+  },
   passwordAuth: {
     enabled: false,
     username: ''
@@ -285,6 +320,12 @@ const loadSettings = async () => {
       const normalizedSettings = {
         ...JSON.parse(JSON.stringify(data.data)),
         language: data.data.language || 'zh-CN',
+        navigationBar: {
+          showAboutButton: data.data.navigationBar?.showAboutButton ?? true,
+          showLockButton: data.data.navigationBar?.showLockButton ?? true,
+          showLanguageButton: data.data.navigationBar?.showLanguageButton ?? true,
+          showThemeButton: data.data.navigationBar?.showThemeButton ?? true
+        },
         passwordAuth: {
           enabled: data.data.passwordAuth?.enabled || false,
           username: data.data.passwordAuth?.username || ''
@@ -367,6 +408,11 @@ const saveSettings = async () => {
 
     // 更新原始设置
     originalSettings.value = JSON.parse(JSON.stringify(settings.value))
+
+    // 让根组件即时同步顶部导航栏与语言等设置，避免用户保存后还需要刷新页面。
+    window.dispatchEvent(new CustomEvent('app-settings-updated', {
+      detail: JSON.parse(JSON.stringify(settings.value))
+    }))
 
     showSaveMessage(t('settings.messages.saved'), true)
   } catch (error) {

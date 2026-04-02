@@ -124,6 +124,7 @@ const messages = {
       },
       sections: {
         serverDisplay: '服务器显示设置',
+        navigationBar: '导航栏设置',
         dataRefresh: '数据刷新设置',
         frontendService: '前端服务设置',
         accessControl: '访问控制设置',
@@ -131,8 +132,12 @@ const messages = {
       },
       fields: {
         showServerPort: '显示进程端口',
-        showServerName: '任务显示服务器名称',
+        showServerName: '显示任务的服务器名称',
         showRefreshTime: '显示刷新时间',
+        showAboutButton: '显示关于按键',
+        showLockButton: '显示锁定按键',
+        showLanguageButton: '显示语言按键',
+        showThemeButton: '显示主题按键',
         refreshInterval: '刷新间隔',
         frontendPort: '前端服务端口',
         enableIPWhitelist: '启用IP白名单',
@@ -140,8 +145,8 @@ const messages = {
         ipWhitelist: 'IP白名单'
       },
       warnings: {
-        frontendPort: '修改端口后需要重启前端服务才能生效',
-        ipWhitelist: '白名单设置修改后需要重启容器才能生效'
+        frontendPort: '修改端口后重启前端服务生效',
+        ipWhitelist: '白名单设置修改后重启容器生效'
       },
       refreshOptions: {
         noRefresh: '不刷新',
@@ -256,6 +261,7 @@ const messages = {
       },
       sections: {
         serverDisplay: 'Server Display',
+        navigationBar: 'Navigation Bar',
         dataRefresh: 'Data Refresh',
         frontendService: 'Frontend Service',
         accessControl: 'Access Control',
@@ -263,8 +269,12 @@ const messages = {
       },
       fields: {
         showServerPort: 'Show process port',
-        showServerName: 'Show server name in tasks',
+        showServerName: 'Show the task server name',
         showRefreshTime: 'Show refresh time',
+        showAboutButton: 'Show About button',
+        showLockButton: 'Show Lock button',
+        showLanguageButton: 'Show Language button',
+        showThemeButton: 'Show Theme button',
         refreshInterval: 'Refresh interval',
         frontendPort: 'Frontend port',
         enableIPWhitelist: 'Enable IP whitelist',
@@ -272,8 +282,8 @@ const messages = {
         ipWhitelist: 'IP whitelist'
       },
       warnings: {
-        frontendPort: 'Restart the frontend service after changing the port',
-        ipWhitelist: 'Restart the container after changing whitelist settings'
+        frontendPort: 'Changes take effect after restarting the frontend service',
+        ipWhitelist: 'Changes take effect after restarting the container'
       },
       refreshOptions: {
         noRefresh: 'Do not refresh',
