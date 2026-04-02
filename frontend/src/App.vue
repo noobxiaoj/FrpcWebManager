@@ -2,7 +2,9 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import { getApiBaseUrl } from '@/utils/api'
+import { syncLanguageFromSettings, useI18n } from '@/utils/i18n'
 import ThemeToggle from '@/components/ThemeToggle.vue'
+import LanguageToggle from '@/components/LanguageToggle.vue'
 import PasswordLoginGate from '@/components/PasswordLoginGate.vue'
 
 const mobileMenuOpen = ref(false)
@@ -24,6 +26,7 @@ const toggleMobileMenu = () => {
 const isPasswordProtected = computed(() => authState.value.passwordAuth?.enabled)
 const isAuthenticated = computed(() => authState.value.authenticated)
 const showPasswordGate = computed(() => !authLoading.value && isPasswordProtected.value && !isAuthenticated.value)
+const { t } = useI18n()
 
 /**
  * 统一处理“登录态已失效”事件。
@@ -47,7 +50,7 @@ const loadAuthStatus = async () => {
     const result = await response.json()
 
     if (result.code !== 0) {
-      throw new Error(result.message || '获取认证状态失败')
+      throw new Error(result.message || t('app.auth.loadStatusFailed'))
     }
 
     authState.value = {
@@ -59,7 +62,7 @@ const loadAuthStatus = async () => {
     }
   } catch (error) {
     console.error('获取认证状态失败:', error)
-    loginErrorMessage.value = '初始化认证状态失败，请刷新页面重试'
+    loginErrorMessage.value = t('app.auth.initFailed')
   } finally {
     authLoading.value = false
   }
@@ -88,21 +91,47 @@ const handleLogin = async ({ username, password }) => {
     const result = await response.json()
 
     if (result.code !== 0) {
-      throw new Error(result.message || '登录失败')
+      throw new Error(result.message || t('app.auth.loginFailed'))
     }
 
     await loadAuthStatus()
+    await loadLanguageSettings()
   } catch (error) {
     console.error('登录失败:', error)
-    loginErrorMessage.value = error.message || '登录失败，请检查用户名和密码'
+    loginErrorMessage.value = error.message || t('app.auth.loginFallbackError')
   } finally {
     loginLoading.value = false
   }
 }
 
 /**
+ * 读取后端保存的语言设置，并同步到全局语言状态。
+ * 这样页面刷新、重新登录后都能恢复用户最后一次选择的语言。
+ *
+ * @returns {Promise<void>}
+ */
+const loadLanguageSettings = async () => {
+  try {
+    const response = await fetch(`${getApiBaseUrl()}/api/settings`, {
+      credentials: 'include'
+    })
+
+    if (!response.ok) {
+      return
+    }
+
+    const result = await response.json()
+    syncLanguageFromSettings(result.data?.language)
+  } catch (error) {
+    console.error('获取语言设置失败:', error)
+  }
+}
+
+/**
  * 主动退出当前浏览器的登录态。
  * 退出后如果系统仍启用了密码，将重新回到密码验证页面。
+ *
+ * @returns {Promise<void>}
  */
 const handleLogout = async () => {
   try {
@@ -120,6 +149,10 @@ const handleLogout = async () => {
 onMounted(async () => {
   await loadAuthStatus()
 
+  if (!showPasswordGate.value) {
+    await loadLanguageSettings()
+  }
+
   /**
    * 当业务接口返回“未登录”时，统一切回密码验证页面。
    * 这样即使会话失效，也不会让界面停留在不可操作状态。
@@ -135,8 +168,8 @@ onUnmounted(() => {
 <template>
   <div v-if="authLoading" class="auth-loading-screen">
     <div class="auth-loading-card">
-      <p class="auth-loading-label">安全验证</p>
-      <p class="auth-loading-text">正在检查当前浏览器的访问状态...</p>
+      <p class="auth-loading-label">{{ t('app.auth.checkingTitle') }}</p>
+      <p class="auth-loading-text">{{ t('app.auth.checkingText') }}</p>
     </div>
   </div>
 
@@ -152,7 +185,7 @@ onUnmounted(() => {
     <header class="top-header">
       <div class="header-container">
         <!-- 移动端菜单按钮 -->
-        <button class="mobile-menu-btn" @click="toggleMobileMenu" aria-label="菜单">
+        <button class="mobile-menu-btn" @click="toggleMobileMenu" :aria-label="t('app.auth.mobileMenu')">
           <span></span>
           <span></span>
           <span></span>
@@ -162,38 +195,57 @@ onUnmounted(() => {
         <div class="left-group">
           <!-- Logo / 标题 -->
           <div class="logo">
-            <h1>FRPC 管理器</h1>
+            <h1>{{ t('app.name') }}</h1>
           </div>
 
           <!-- 桌面端导航 -->
           <nav class="desktop-nav">
-            <RouterLink to="/">服务器</RouterLink>
-            <RouterLink to="/tasks">任务</RouterLink>
-            <RouterLink to="/settings">设置</RouterLink>
-            <RouterLink to="/about">关于</RouterLink>
+            <RouterLink to="/">{{ t('app.nav.servers') }}</RouterLink>
+            <RouterLink to="/tasks">{{ t('app.nav.tasks') }}</RouterLink>
+            <RouterLink to="/settings">{{ t('app.nav.settings') }}</RouterLink>
+            <RouterLink to="/about">{{ t('app.nav.about') }}</RouterLink>
           </nav>
         </div>
 
-        <!-- 主题切换按钮 -->
+        <!-- 顶部功能按钮：语言切换 + 主题切换 -->
         <div class="theme-wrapper">
           <button
             v-if="isPasswordProtected"
             class="logout-button"
             @click="handleLogout"
-            aria-label="退出登录"
+            :aria-label="t('app.auth.logout')"
+            :title="t('app.auth.logout')"
           >
-            退出
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path
+                d="M8 10V7.5C8 5.01472 10.0147 3 12.5 3C14.9853 3 17 5.01472 17 7.5V10"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+              <rect
+                x="5"
+                y="10"
+                width="15"
+                height="11"
+                rx="2"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <circle cx="12.5" cy="15.5" r="1.2" fill="currentColor" />
+            </svg>
           </button>
+          <LanguageToggle />
           <ThemeToggle />
         </div>
       </div>
 
       <!-- 移动端导航菜单 -->
       <nav class="mobile-nav" :class="{ open: mobileMenuOpen }">
-        <RouterLink to="/" @click="mobileMenuOpen = false">服务器</RouterLink>
-        <RouterLink to="/tasks" @click="mobileMenuOpen = false">任务</RouterLink>
-        <RouterLink to="/settings" @click="mobileMenuOpen = false">设置</RouterLink>
-        <RouterLink to="/about" @click="mobileMenuOpen = false">关于</RouterLink>
+        <RouterLink to="/" @click="mobileMenuOpen = false">{{ t('app.nav.servers') }}</RouterLink>
+        <RouterLink to="/tasks" @click="mobileMenuOpen = false">{{ t('app.nav.tasks') }}</RouterLink>
+        <RouterLink to="/settings" @click="mobileMenuOpen = false">{{ t('app.nav.settings') }}</RouterLink>
+        <RouterLink to="/about" @click="mobileMenuOpen = false">{{ t('app.nav.about') }}</RouterLink>
       </nav>
     </header>
 
@@ -298,15 +350,25 @@ onUnmounted(() => {
 }
 
 .logout-button {
-  min-height: 40px;
-  padding: 0.5rem 0.9rem;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  padding: 0;
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--header-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .logout-button:hover {
   background: var(--accent-color-bg);
+}
+
+.logout-button svg {
+  width: 18px;
+  height: 18px;
 }
 
 /* 桌面端导航 */

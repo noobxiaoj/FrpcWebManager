@@ -3,7 +3,7 @@
     <div class="modal-card" @click.stop>
       <div class="modal-header">
         <h3 class="modal-title">{{ modalTitle }}</h3>
-        <AppButton class="modal-close" preserve-style @click="handleClose" title="关闭">
+        <AppButton class="modal-close" preserve-style @click="handleClose" :title="t('common.close')">
           <template #icon>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -16,7 +16,7 @@
       <div class="modal-body">
         <form class="password-form" @submit.prevent="handleSubmit">
           <div v-if="mode === 'add'" class="form-group">
-            <label for="passwordUsername" class="form-label">用户名</label>
+            <label for="passwordUsername" class="form-label">{{ t('login.username') }}</label>
             <input
               id="passwordUsername"
               v-model.trim="form.username"
@@ -24,13 +24,13 @@
               class="form-input"
               :class="{ 'input-error': errors.username }"
               :disabled="saving"
-              placeholder="请输入用户名"
+              :placeholder="t('login.inputUsername')"
             />
             <span v-if="errors.username" class="form-error">{{ errors.username }}</span>
           </div>
 
           <div v-if="mode === 'delete'" class="form-group">
-            <label for="deletePasswordUsername" class="form-label">账号</label>
+            <label for="deletePasswordUsername" class="form-label">{{ t('login.account') }}</label>
             <input
               id="deletePasswordUsername"
               v-model.trim="form.username"
@@ -38,13 +38,13 @@
               class="form-input"
               :class="{ 'input-error': errors.username }"
               :disabled="saving"
-              placeholder="请输入账号"
+              :placeholder="t('login.inputAccount')"
             />
             <span v-if="errors.username" class="form-error">{{ errors.username }}</span>
           </div>
 
           <div v-if="mode === 'change'" class="form-group">
-            <label for="oldPassword" class="form-label">旧密码</label>
+            <label for="oldPassword" class="form-label">{{ t('login.oldPassword') }}</label>
             <input
               id="oldPassword"
               v-model="form.oldPassword"
@@ -52,7 +52,7 @@
               class="form-input"
               :class="{ 'input-error': errors.oldPassword }"
               :disabled="saving"
-              placeholder="请输入旧密码"
+              :placeholder="t('login.inputOldPassword')"
             />
             <span v-if="errors.oldPassword" class="form-error">{{ errors.oldPassword }}</span>
           </div>
@@ -72,7 +72,7 @@
           </div>
 
           <div v-if="mode !== 'delete'" class="form-group">
-            <label for="confirmPassword" class="form-label">再次输入密码</label>
+            <label for="confirmPassword" class="form-label">{{ t('login.confirmPassword') }}</label>
             <input
               id="confirmPassword"
               v-model="form.confirmPassword"
@@ -80,13 +80,13 @@
               class="form-input"
               :class="{ 'input-error': errors.confirmPassword }"
               :disabled="saving"
-              placeholder="请再次输入密码"
+              :placeholder="t('login.inputConfirmPassword')"
             />
             <span v-if="errors.confirmPassword" class="form-error">{{ errors.confirmPassword }}</span>
           </div>
 
           <div v-if="mode === 'delete'" class="form-group">
-            <label for="deletePassword" class="form-label">密码</label>
+            <label for="deletePassword" class="form-label">{{ t('login.password') }}</label>
             <input
               id="deletePassword"
               v-model="form.password"
@@ -94,14 +94,14 @@
               class="form-input"
               :class="{ 'input-error': errors.password }"
               :disabled="saving"
-              placeholder="请输入密码"
+              :placeholder="t('login.inputPassword')"
             />
             <span v-if="errors.password" class="form-error">{{ errors.password }}</span>
           </div>
 
           <div class="form-actions">
             <AppButton variant="secondary" type="button" @click="handleClose" :disabled="saving">
-              取消
+              {{ t('common.cancel') }}
             </AppButton>
             <AppButton
               :variant="mode === 'delete' ? 'danger' : 'primary'"
@@ -121,6 +121,7 @@
 <script setup>
 import { computed, reactive, watch } from 'vue'
 import AppButton from '@/components/AppButton.vue'
+import { useI18n } from '@/utils/i18n'
 
 const props = defineProps({
   visible: {
@@ -142,6 +143,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'submit'])
+const { t } = useI18n()
 
 const form = reactive({
   username: '',
@@ -160,15 +162,14 @@ const errors = reactive({
 })
 
 const modalTitle = computed(() => {
-  if (props.mode === 'change') return '更改密码'
-  if (props.mode === 'delete') return '删除密码'
-  return '添加密码'
+  if (props.mode === 'change') return t('passwordModal.changeTitle')
+  if (props.mode === 'delete') return t('passwordModal.deleteTitle')
+  return t('passwordModal.addTitle')
 })
 
 const submitText = computed(() => {
-  if (props.mode === 'change') return '保存'
-  if (props.mode === 'delete') return '确认删除'
-  return '保存'
+  if (props.mode === 'delete') return t('passwordModal.confirmDelete')
+  return t('passwordModal.save')
 })
 
 const passwordFieldId = computed(() => {
@@ -176,11 +177,11 @@ const passwordFieldId = computed(() => {
 })
 
 const primaryPasswordLabel = computed(() => {
-  return props.mode === 'change' ? '新密码' : '输入密码'
+  return props.mode === 'change' ? t('login.newPassword') : t('passwordModal.inputPasswordLabel')
 })
 
 const primaryPasswordPlaceholder = computed(() => {
-  return props.mode === 'change' ? '请输入新密码' : '请输入密码'
+  return props.mode === 'change' ? t('login.inputNewPassword') : t('login.inputPassword')
 })
 
 const primaryPasswordModel = computed({
@@ -244,38 +245,38 @@ const validateForm = () => {
 
   if (props.mode === 'add') {
     if (!form.username) {
-      errors.username = '请输入用户名'
+      errors.username = t('passwordModal.validation.usernameRequired')
     }
     if (!form.password) {
-      errors.password = '请输入密码'
+      errors.password = t('passwordModal.validation.passwordRequired')
     }
     if (!form.confirmPassword) {
-      errors.confirmPassword = '请再次输入密码'
+      errors.confirmPassword = t('passwordModal.validation.confirmPasswordRequired')
     } else if (form.password !== form.confirmPassword) {
-      errors.confirmPassword = '两次输入的密码不一致'
+      errors.confirmPassword = t('passwordModal.validation.passwordMismatch')
     }
   }
 
   if (props.mode === 'change') {
     if (!form.oldPassword) {
-      errors.oldPassword = '请输入旧密码'
+      errors.oldPassword = t('passwordModal.validation.oldPasswordRequired')
     }
     if (!form.newPassword) {
-      errors.newPassword = '请输入新密码'
+      errors.newPassword = t('passwordModal.validation.newPasswordRequired')
     }
     if (!form.confirmPassword) {
-      errors.confirmPassword = '请再次输入新密码'
+      errors.confirmPassword = t('passwordModal.validation.confirmPasswordRequired')
     } else if (form.newPassword !== form.confirmPassword) {
-      errors.confirmPassword = '两次输入的新密码不一致'
+      errors.confirmPassword = t('passwordModal.validation.passwordMismatch')
     }
   }
 
   if (props.mode === 'delete') {
     if (!form.username) {
-      errors.username = '请输入账号'
+      errors.username = t('passwordModal.validation.usernameRequired')
     }
     if (!form.password) {
-      errors.password = '请输入密码'
+      errors.password = t('passwordModal.validation.passwordRequired')
     }
   }
 

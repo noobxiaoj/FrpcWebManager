@@ -2,31 +2,31 @@
   <div class="login-gate">
     <div class="login-panel">
       <div class="login-toolbar">
-        <div class="login-brand">FRPC 管理器</div>
+        <div class="login-brand">{{ t('app.name') }}</div>
         <ThemeToggle />
       </div>
 
       <form class="login-form" @submit.prevent="submitLogin">
         <div class="form-field">
-          <label for="login-username">用户名</label>
+          <label for="login-username">{{ t('login.username') }}</label>
           <input
             id="login-username"
             v-model.trim="form.username"
             type="text"
             autocomplete="username"
-            placeholder="请输入用户名"
+            :placeholder="t('login.inputUsername')"
             :disabled="loading"
           />
         </div>
 
         <div class="form-field">
-          <label for="login-password">密码</label>
+          <label for="login-password">{{ t('login.password') }}</label>
           <input
             id="login-password"
             v-model="form.password"
             type="password"
             autocomplete="current-password"
-            placeholder="请输入密码"
+            :placeholder="t('login.inputPassword')"
             :disabled="loading"
           />
         </div>
@@ -34,7 +34,7 @@
         <p v-if="errorMessage" class="login-error">{{ errorMessage }}</p>
 
         <button type="submit" class="login-submit" :disabled="loading">
-          {{ loading ? '验证中...' : '进入系统' }}
+          {{ loading ? t('login.validating') : t('login.enterSystem') }}
         </button>
       </form>
     </div>
@@ -44,6 +44,7 @@
 <script setup>
 import { reactive, watch } from 'vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
+import { useI18n } from '@/utils/i18n'
 
 const props = defineProps({
   loading: {
@@ -61,6 +62,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['submit'])
+const { t } = useI18n()
 
 const form = reactive({
   username: '',
@@ -75,7 +77,7 @@ watch(
   () => props.defaultUsername,
   () => {
     if (!form.username) {
-      form.username = ''
+      form.username = props.defaultUsername || ''
     }
   },
   { immediate: true }

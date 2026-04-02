@@ -1,13 +1,14 @@
 <template>
   <div class="update-card markdown-content" :class="{ 'current-update': highlighted }">
     <div v-if="content" v-html="renderedContent"></div>
-    <div v-else class="loading">加载中...</div>
+    <div v-else class="loading">{{ t('common.loading') }}</div>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import MarkdownIt from 'markdown-it'
+import { useI18n } from '@/utils/i18n'
 
 const props = defineProps({
   content: {
@@ -19,6 +20,8 @@ const props = defineProps({
     default: false
   }
 })
+
+const { t } = useI18n()
 
 const md = new MarkdownIt({
   html: true,

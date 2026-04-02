@@ -72,6 +72,7 @@ func (h *SettingsHandler) GetSettings(c *gin.Context) {
 		"refreshInterval":   settings.RefreshInterval,
 		"showRefreshTime":   settings.ShowRefreshTime,
 		"showServerName":    settings.ShowServerName,
+		"language":          settings.Language,
 		"frontendPort":      settings.FrontendPort,
 		"enableIPWhitelist": settings.EnableIPWhitelist,
 		"ipWhitelist":       settings.IPWhitelist,
@@ -100,27 +101,38 @@ func (h *SettingsHandler) UpdateSettings(c *gin.Context) {
 		return
 	}
 
+	// 保存完成后重新读取一次最终设置。
+	// 这样可以把仓库层自动补齐的默认值一并返回给前端，
+	// 避免旧客户端未传 language 等新字段时，响应内容与落盘结果不一致。
+	savedSettings, err := h.service.GetSettings()
+	if err != nil {
+		ErrorResponse(c, CodeInternalError, "读取最新设置失败", err)
+		return
+	}
+
 	// 广播设置更新事件到所有连接的客户端
 	SSEManagerInstance.BroadcastSettingsUpdated(gin.H{
-		"showServerPort":    settings.ShowServerPort,
-		"refreshInterval":   settings.RefreshInterval,
-		"showRefreshTime":   settings.ShowRefreshTime,
-		"showServerName":    settings.ShowServerName,
-		"frontendPort":      settings.FrontendPort,
-		"enableIPWhitelist": settings.EnableIPWhitelist,
-		"ipWhitelist":       settings.IPWhitelist,
+		"showServerPort":    savedSettings.ShowServerPort,
+		"refreshInterval":   savedSettings.RefreshInterval,
+		"showRefreshTime":   savedSettings.ShowRefreshTime,
+		"showServerName":    savedSettings.ShowServerName,
+		"language":          savedSettings.Language,
+		"frontendPort":      savedSettings.FrontendPort,
+		"enableIPWhitelist": savedSettings.EnableIPWhitelist,
+		"ipWhitelist":       savedSettings.IPWhitelist,
 	})
 
 	SuccessResponse(c, gin.H{
 		"message": "设置已更新",
 		"settings": gin.H{
-			"showServerPort":    settings.ShowServerPort,
-			"refreshInterval":   settings.RefreshInterval,
-			"showRefreshTime":   settings.ShowRefreshTime,
-			"showServerName":    settings.ShowServerName,
-			"frontendPort":      settings.FrontendPort,
-			"enableIPWhitelist": settings.EnableIPWhitelist,
-			"ipWhitelist":       settings.IPWhitelist,
+			"showServerPort":    savedSettings.ShowServerPort,
+			"refreshInterval":   savedSettings.RefreshInterval,
+			"showRefreshTime":   savedSettings.ShowRefreshTime,
+			"showServerName":    savedSettings.ShowServerName,
+			"language":          savedSettings.Language,
+			"frontendPort":      savedSettings.FrontendPort,
+			"enableIPWhitelist": savedSettings.EnableIPWhitelist,
+			"ipWhitelist":       savedSettings.IPWhitelist,
 		},
 	})
 }

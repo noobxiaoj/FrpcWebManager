@@ -1,5 +1,5 @@
 <template>
-  <button class="theme-toggle" @click="toggleTheme" :aria-label="`切换到${theme === 'light' ? '暗' : '亮'}色主题`">
+  <button class="theme-toggle" @click="toggleTheme" :aria-label="themeAriaLabel" :title="themeAriaLabel">
     <svg v-if="theme === 'light'" class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M12 3V4M12 20V21M4 12H3M21 12H20M5.636 5.636L4.929 4.929M19.071 19.071L18.364 18.364M5.636 18.364L4.929 19.071M19.071 4.929L18.364 5.636" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/>
@@ -11,11 +11,24 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useThemeStore } from '@/stores/theme'
 import { storeToRefs } from 'pinia'
+import { useI18n } from '@/utils/i18n'
 
 const themeStore = useThemeStore()
 const { theme } = storeToRefs(themeStore)
+const { t } = useI18n()
+
+/**
+ * 根据当前主题返回切换按钮的可访问性文案。
+ * 当前是亮色时提示“切到暗色”，反之提示“切到亮色”。
+ */
+const themeAriaLabel = computed(() => {
+  return theme.value === 'light'
+    ? t('theme.switchToDark')
+    : t('theme.switchToLight')
+})
 
 const toggleTheme = () => {
   themeStore.toggleTheme()

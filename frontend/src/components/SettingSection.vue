@@ -13,7 +13,7 @@
       </div>
 
       <div class="section-toggle-side">
-        <span class="toggle-text">{{ expanded ? '收起' : '展开' }}</span>
+        <span class="toggle-text">{{ expanded ? t('common.collapse') : t('common.expand') }}</span>
         <svg
           class="toggle-icon"
           :class="{ expanded }"
@@ -40,6 +40,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import { useI18n } from '@/utils/i18n'
 
 const props = defineProps({
   title: {
@@ -59,6 +60,8 @@ const props = defineProps({
     default: false
   }
 })
+
+const { t } = useI18n()
 
 /**
  * 控制分组的折叠状态。

@@ -1,5 +1,15 @@
 package model
 
+const (
+	// LanguageZhCN 表示简体中文。
+	// 后续如果接入 i18n，可直接复用这个稳定值作为语言资源键。
+	LanguageZhCN = "zh-CN"
+
+	// LanguageEnUS 表示英语。
+	// 这里使用 en-US 作为统一英文标识，避免后续多英文区域扩展时出现歧义。
+	LanguageEnUS = "en-US"
+)
+
 // PasswordAuthSettings 密码认证设置
 // 当前使用 bcrypt 哈希存储密码。
 // Password 字段仅用于兼容旧版 settings.json 中的明文密码迁移，迁移完成后会被清空。
@@ -23,6 +33,7 @@ type SystemSettings struct {
 	RefreshInterval   int                  `json:"refreshInterval"`   // 日志和运行时间的刷新间隔（秒）
 	ShowRefreshTime   bool                 `json:"showRefreshTime"`   // 是否在服务器页面显示刷新时间
 	ShowServerName    bool                 `json:"showServerName"`    // 是否在任务中显示服务器名称而非IP
+	Language          string               `json:"language"`          // 当前界面语言，仅保存选择结果，暂不触发翻译逻辑
 	FrontendPort      int                  `json:"frontendPort"`      // 前端服务端口（默认 4500）
 	EnableIPWhitelist bool                 `json:"enableIPWhitelist"` // 是否启用IP白名单
 	IPWhitelist       []string             `json:"ipWhitelist"`       // IP白名单列表
@@ -36,6 +47,7 @@ func DefaultSystemSettings() *SystemSettings {
 		RefreshInterval:   10,    // 默认刷新间隔 10 秒
 		ShowRefreshTime:   true,  // 默认显示刷新时间
 		ShowServerName:    false, // 默认不显示服务器名称
+		Language:          LanguageZhCN, // 默认语言为简体中文
 		FrontendPort:      4500,  // 默认前端端口 4500
 		EnableIPWhitelist: false, // 默认不启用IP白名单
 		IPWhitelist:       []string{}, // 默认白名单为空
@@ -62,6 +74,7 @@ func (s *SystemSettings) Clone() *SystemSettings {
 		RefreshInterval:   s.RefreshInterval,
 		ShowRefreshTime:   s.ShowRefreshTime,
 		ShowServerName:    s.ShowServerName,
+		Language:          s.Language,
 		FrontendPort:      s.FrontendPort,
 		EnableIPWhitelist: s.EnableIPWhitelist,
 		IPWhitelist:       ipWhitelist,

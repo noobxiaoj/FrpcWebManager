@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/xiaoj/frpc_webmanager/internal/model"
@@ -116,6 +117,17 @@ func normalizeSettings(settings *model.SystemSettings) (*model.SystemSettings, e
 
 	if normalized.FrontendPort == 0 {
 		normalized.FrontendPort = defaultSettings.FrontendPort
+	}
+
+	// 统一收敛语言字段，确保旧版 settings.json 缺失该字段时自动补齐默认值，
+	// 也避免未来前端传入非法值导致配置文件中出现不可识别内容。
+	switch strings.TrimSpace(normalized.Language) {
+	case model.LanguageZhCN, "":
+		normalized.Language = defaultSettings.Language
+	case model.LanguageEnUS:
+		normalized.Language = model.LanguageEnUS
+	default:
+		normalized.Language = defaultSettings.Language
 	}
 
 	if normalized.IPWhitelist == nil {

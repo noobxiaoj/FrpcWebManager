@@ -1,6 +1,6 @@
 <template>
   <div class="settings">
-    <PageHeader title="系统设置">
+    <PageHeader :title="t('settings.pageTitle')">
       <template #actions>
         <AppButton
           @click="saveSettings"
@@ -16,7 +16,7 @@
             <polyline points="17 21 17 13 7 13 7 21"></polyline>
             <polyline points="7 3 7 8 15 8"></polyline>
           </svg>
-          {{ saving ? '保存中...' : '保存设置' }}
+          {{ saving ? t('common.saving') : t('common.saveSettings') }}
         </AppButton>
         <AppButton
           v-if="hasChanges"
@@ -25,38 +25,45 @@
           class="btn-reset page-header-action-button"
           preserve-style
         >
-          重置
+          {{ t('common.reset') }}
         </AppButton>
       </template>
     </PageHeader>
 
     <div class="settings-container">
       <SettingSection
-        title="服务器显示设置"
+        :title="t('settings.sections.serverDisplay')"
         section-id="server-display-settings-content"
       >
         <SettingItem
           id="showServerPort"
-          label="显示进程端口"
+          :label="t('settings.fields.showServerPort')"
         >
           <Switch id="showServerPort" v-model="settings.showServerPort" :disabled="saving" />
         </SettingItem>
 
         <SettingItem
           id="showServerName"
-          label="任务显示服务器名称"
+          :label="t('settings.fields.showServerName')"
         >
           <Switch id="showServerName" v-model="settings.showServerName" :disabled="saving" />
+        </SettingItem>
+
+        <SettingItem
+          id="showRefreshTime"
+          :label="t('settings.fields.showRefreshTime')"
+        >
+          <Switch id="showRefreshTime" v-model="settings.showRefreshTime" :disabled="saving" />
         </SettingItem>
       </SettingSection>
 
       <SettingSection
-        title="数据刷新设置"
+        :title="t('settings.sections.dataRefresh')"
         section-id="data-refresh-settings-content"
       >
         <SettingItem
           id="refreshInterval"
-          label="刷新间隔"
+          :label="t('settings.fields.refreshInterval')"
         >
           <select
             id="refreshInterval"
@@ -64,32 +71,25 @@
             :disabled="saving"
             class="interval-select"
           >
-            <option :value="0">不刷新</option>
-            <option :value="1">1 秒</option>
-            <option :value="3">3 秒</option>
-            <option :value="10">10 秒</option>
-            <option :value="30">30 秒</option>
-            <option :value="60">1 分钟</option>
-            <option :value="120">2 分钟</option>
+            <option :value="0">{{ t('settings.refreshOptions.noRefresh') }}</option>
+            <option :value="1">{{ t('settings.refreshOptions.seconds', { count: 1 }) }}</option>
+            <option :value="3">{{ t('settings.refreshOptions.seconds', { count: 3 }) }}</option>
+            <option :value="10">{{ t('settings.refreshOptions.seconds', { count: 10 }) }}</option>
+            <option :value="30">{{ t('settings.refreshOptions.seconds', { count: 30 }) }}</option>
+            <option :value="60">{{ t('settings.refreshOptions.oneMinute') }}</option>
+            <option :value="120">{{ t('settings.refreshOptions.minutes', { count: 2 }) }}</option>
           </select>
-        </SettingItem>
-
-        <SettingItem
-          id="showRefreshTime"
-          label="显示刷新时间"
-        >
-          <Switch id="showRefreshTime" v-model="settings.showRefreshTime" :disabled="saving" />
         </SettingItem>
       </SettingSection>
 
       <SettingSection
-        title="前端服务设置"
+        :title="t('settings.sections.frontendService')"
         section-id="frontend-service-settings-content"
       >
         <SettingItem
           id="frontendPort"
-          label="前端服务端口"
-          warning="修改端口后需要重启前端服务才能生效"
+          :label="t('settings.fields.frontendPort')"
+          :warning="t('settings.warnings.frontendPort')"
         >
           <input
             id="frontendPort"
@@ -105,13 +105,13 @@
       </SettingSection>
 
       <SettingSection
-        title="访问控制设置"
+        :title="t('settings.sections.accessControl')"
         section-id="access-control-settings-content"
       >
         <SettingItem
           id="enableIPWhitelist"
-          label="启用IP白名单"
-          warning="白名单设置修改后需要重启容器才能生效"
+          :label="t('settings.fields.enableIPWhitelist')"
+          :warning="t('settings.warnings.ipWhitelist')"
         >
           <Switch id="enableIPWhitelist" v-model="settings.enableIPWhitelist" :disabled="saving" />
         </SettingItem>
@@ -120,7 +120,7 @@
         <div v-if="settings.enableIPWhitelist" class="whitelist-manager">
           <div class="setting-item">
             <div class="setting-info full-width">
-              <label class="setting-label">IP白名单</label>
+              <label class="setting-label">{{ t('settings.fields.ipWhitelist') }}</label>
 
               <div class="whitelist-input-group">
                 <input
@@ -128,7 +128,7 @@
                   type="text"
                   v-model="newIP"
                   @keyup.enter="addIP"
-                  placeholder="输入IP地址或CIDR（如：192.168.1.100）"
+                  :placeholder="t('settings.ip.placeholder')"
                   class="ip-input"
                   :disabled="saving"
                 />
@@ -144,7 +144,7 @@
                       <line x1="5" y1="12" x2="19" y2="12"></line>
                     </svg>
                   </template>
-                  添加
+                  {{ t('settings.ip.add') }}
                 </AppButton>
               </div>
 
@@ -162,7 +162,7 @@
                   <AppButton
                     @click="removeIP(index)"
                     class="btn-remove-ip"
-                    title="删除"
+                    :title="t('settings.ip.remove')"
                     preserve-style
                   >
                     <template #icon>
@@ -176,18 +176,13 @@
               </div>
 
               <div v-else class="whitelist-empty">
-                白名单为空，请添加IP地址
+                {{ t('settings.ip.empty') }}
               </div>
             </div>
           </div>
         </div>
-      </SettingSection>
 
-      <SettingSection
-        title="密码设置"
-        section-id="password-settings-content"
-      >
-        <SettingItem id="passwordSetting" label="设置启动密码">
+        <SettingItem id="passwordSetting" :label="t('settings.fields.passwordSetting')">
           <div class="password-actions">
             <AppButton
               v-if="!settings.passwordAuth.enabled"
@@ -195,7 +190,7 @@
               @click="openPasswordModal('add')"
               :disabled="saving || passwordModalSaving"
             >
-              添加密码
+              {{ t('passwordModal.addPassword') }}
             </AppButton>
 
             <template v-else>
@@ -205,7 +200,7 @@
                 @click="openPasswordModal('change')"
                 :disabled="saving || passwordModalSaving"
               >
-                更改密码
+                {{ t('passwordModal.changePassword') }}
               </AppButton>
               <AppButton
                 variant="danger"
@@ -213,7 +208,7 @@
                 @click="openPasswordModal('delete')"
                 :disabled="saving || passwordModalSaving"
               >
-                删除密码
+                {{ t('passwordModal.deletePassword') }}
               </AppButton>
             </template>
           </div>
@@ -240,6 +235,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useTaskStore } from '@/stores/task'
 import { getApiBaseUrl } from '@/utils/api'
+import { setLanguage, syncLanguageFromSettings, useI18n } from '@/utils/i18n'
 import AppButton from '@/components/AppButton.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import SettingItem from '@/components/SettingItem.vue'
@@ -248,12 +244,14 @@ import SettingSection from '@/components/SettingSection.vue'
 import PasswordSettingsModal from '@/components/PasswordSettingsModal.vue'
 
 const taskStore = useTaskStore()
+const { t } = useI18n()
 
 const settings = ref({
   showServerPort: true,
   refreshInterval: 10,
   showRefreshTime: true,
   showServerName: false,
+  language: 'zh-CN',
   frontendPort: 4500,
   enableIPWhitelist: false,
   ipWhitelist: [],
@@ -286,6 +284,7 @@ const loadSettings = async () => {
     if (data.data) {
       const normalizedSettings = {
         ...JSON.parse(JSON.stringify(data.data)),
+        language: data.data.language || 'zh-CN',
         passwordAuth: {
           enabled: data.data.passwordAuth?.enabled || false,
           username: data.data.passwordAuth?.username || ''
@@ -293,12 +292,13 @@ const loadSettings = async () => {
       }
       settings.value = normalizedSettings
       originalSettings.value = JSON.parse(JSON.stringify(normalizedSettings))
+      syncLanguageFromSettings(normalizedSettings.language)
       // 同步到 taskStore
       taskStore.showServerName = data.data.showServerName || false
     }
   } catch (error) {
     console.error('加载设置失败:', error)
-    showSaveMessage('加载设置失败', false)
+    showSaveMessage(t('settings.messages.loadFailed'), false)
   }
 }
 
@@ -340,7 +340,7 @@ const validatePort = (port) => {
 const saveSettings = async () => {
   // 端口验证
   if (!validatePort(settings.value.frontendPort)) {
-    showSaveMessage('端口号必须在 1024-65535 之间', false)
+    showSaveMessage(t('settings.messages.invalidPort'), false)
     return
   }
 
@@ -363,14 +363,15 @@ const saveSettings = async () => {
 
     // 同步 showServerName 到 taskStore
     taskStore.showServerName = settings.value.showServerName || false
+    setLanguage(settings.value.language)
 
     // 更新原始设置
     originalSettings.value = JSON.parse(JSON.stringify(settings.value))
 
-    showSaveMessage('设置已保存', true)
+    showSaveMessage(t('settings.messages.saved'), true)
   } catch (error) {
     console.error('保存设置失败:', error)
-    showSaveMessage('保存设置失败', false)
+    showSaveMessage(t('settings.messages.saveFailed'), false)
   } finally {
     saving.value = false
   }
@@ -434,18 +435,18 @@ const addIP = () => {
   const trimmed = newIP.value.trim()
 
   if (!trimmed) {
-    ipError.value = '请输入IP地址'
+    ipError.value = t('settings.ip.errors.empty')
     return
   }
 
   if (!validateIP(trimmed)) {
-    ipError.value = 'IP地址格式无效，请输入有效的IP地址或CIDR（例如：192.168.1.100 或 192.168.1.0/24）'
+    ipError.value = t('settings.ip.errors.invalid')
     return
   }
 
   // 检查是否已存在
   if (settings.value.ipWhitelist && settings.value.ipWhitelist.includes(trimmed)) {
-    ipError.value = '该IP地址已在白名单中'
+    ipError.value = t('settings.ip.errors.duplicate')
     return
   }
 
