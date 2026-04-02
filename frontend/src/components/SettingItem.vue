@@ -4,7 +4,7 @@
       <label class="setting-label" :for="id">
         <slot name="label">{{ label }}</slot>
       </label>
-      <p class="setting-description">
+      <p v-if="hasDescription" class="setting-description">
         <slot name="description">{{ description }}</slot>
       </p>
       <p v-if="warning" class="setting-warning">
@@ -20,7 +20,9 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed, useSlots } from 'vue'
+
+const props = defineProps({
   id: {
     type: String,
     default: ''
@@ -37,6 +39,18 @@ defineProps({
     type: String,
     default: ''
   }
+})
+
+const slots = useSlots()
+
+/**
+ * 仅在存在描述文本或描述插槽时渲染说明区域，
+ * 避免设置项移除简介后仍然保留空白占位。
+ *
+ * @returns {boolean} 是否显示简介区域
+ */
+const hasDescription = computed(() => {
+  return Boolean(props.description || slots.description)
 })
 </script>
 

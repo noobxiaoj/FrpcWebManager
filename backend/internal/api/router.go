@@ -25,6 +25,14 @@ func SetupRoutes(r *gin.Engine, taskHandler *handler.TaskHandler, serverHandler 
 			c.String(http.StatusOK, "OK")
 		})
 
+		// 登录认证状态与登录行为
+		auth := api.Group("/auth")
+		{
+			auth.GET("/status", settingsHandler.GetAuthStatus) // 获取当前认证状态
+			auth.POST("/login", settingsHandler.Login)         // 登录并写入浏览器会话
+			auth.POST("/logout", settingsHandler.Logout)       // 退出登录
+		}
+
 		// 任务管理路由
 		tasks := api.Group("/tasks")
 		{
@@ -62,6 +70,9 @@ func SetupRoutes(r *gin.Engine, taskHandler *handler.TaskHandler, serverHandler 
 		{
 			settings.GET("", settingsHandler.GetSettings)              // 获取设置
 			settings.PUT("", settingsHandler.UpdateSettings)           // 更新设置
+			settings.POST("/password", settingsHandler.CreatePassword) // 添加密码
+			settings.PUT("/password", settingsHandler.UpdatePassword)  // 修改密码
+			settings.DELETE("/password", settingsHandler.DeletePassword) // 删除密码
 			settings.GET("/events", handler.HandleSettingsEvents)      // SSE 事件流
 		}
 

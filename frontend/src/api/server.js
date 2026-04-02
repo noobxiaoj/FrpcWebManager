@@ -21,8 +21,13 @@ export const serverAPI = {
    */
   async listServers() {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/servers`)
+      const response = await fetch(`${API_BASE_URL}/api/servers`, {
+        credentials: 'include'
+      })
       const result = await response.json()
+      if (result.code === 1004) {
+        window.dispatchEvent(new CustomEvent('auth-expired'))
+      }
       if (result.code === 0) {
         return result.data.servers || []
       }
@@ -38,8 +43,13 @@ export const serverAPI = {
    */
   async getServer(id) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/servers/${id}`)
+      const response = await fetch(`${API_BASE_URL}/api/servers/${id}`, {
+        credentials: 'include'
+      })
       const result = await response.json()
+      if (result.code === 1004) {
+        window.dispatchEvent(new CustomEvent('auth-expired'))
+      }
       if (result.code === 0) {
         return result.data
       }
@@ -57,12 +67,16 @@ export const serverAPI = {
     try {
       const response = await fetch(`${API_BASE_URL}/api/servers`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(serverData)
       })
       const result = await response.json()
+      if (result.code === 1004) {
+        window.dispatchEvent(new CustomEvent('auth-expired'))
+      }
       if (result.code === 0) {
         return result.data
       }
@@ -80,12 +94,16 @@ export const serverAPI = {
     try {
       const response = await fetch(`${API_BASE_URL}/api/servers/${id}`, {
         method: 'PUT',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(serverData)
       })
       const result = await response.json()
+      if (result.code === 1004) {
+        window.dispatchEvent(new CustomEvent('auth-expired'))
+      }
       if (result.code === 0) {
         return result.data
       }
@@ -105,9 +123,13 @@ export const serverAPI = {
     try {
       const url = `${API_BASE_URL}/api/servers/${id}${force ? '?force=true' : ''}`
       const response = await fetch(url, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'include'
       })
       const result = await response.json()
+      if (result.code === 1004) {
+        window.dispatchEvent(new CustomEvent('auth-expired'))
+      }
 
       // 如果服务器有任务，返回任务信息
       if (result.code === 1 && result.data?.hasTasks) {
@@ -139,12 +161,16 @@ export const serverAPI = {
     try {
       const response = await fetch(`${API_BASE_URL}/api/servers/order`, {
         method: 'PUT',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ order: serverOrder })
       })
       const result = await response.json()
+      if (result.code === 1004) {
+        window.dispatchEvent(new CustomEvent('auth-expired'))
+      }
       if (result.code === 0) {
         return true
       }
@@ -162,12 +188,16 @@ export const serverAPI = {
     try {
       const response = await fetch(`${API_BASE_URL}/api/servers/${id}/lock`, {
         method: 'PUT',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ locked })
       })
       const result = await response.json()
+      if (result.code === 1004) {
+        window.dispatchEvent(new CustomEvent('auth-expired'))
+      }
       if (result.code === 0) {
         return true
       }
@@ -185,12 +215,16 @@ export const serverAPI = {
     try {
       const response = await fetch(`${API_BASE_URL}/api/servers/${id}/logs`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(log)
       })
       const result = await response.json()
+      if (result.code === 1004) {
+        window.dispatchEvent(new CustomEvent('auth-expired'))
+      }
       if (result.code === 0) {
         return true
       }
@@ -207,9 +241,13 @@ export const serverAPI = {
   async clearLogs(id) {
     try {
       const response = await fetch(`${API_BASE_URL}/api/servers/${id}/logs`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'include'
       })
       const result = await response.json()
+      if (result.code === 1004) {
+        window.dispatchEvent(new CustomEvent('auth-expired'))
+      }
       if (result.code === 0) {
         return true
       }
@@ -225,8 +263,13 @@ export const serverAPI = {
    */
   async getLogs(id, limit = 100) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/servers/${id}/logs?limit=${limit}`)
+      const response = await fetch(`${API_BASE_URL}/api/servers/${id}/logs?limit=${limit}`, {
+        credentials: 'include'
+      })
       const result = await response.json()
+      if (result.code === 1004) {
+        window.dispatchEvent(new CustomEvent('auth-expired'))
+      }
       if (result.code === 0) {
         return result.data.logs || []
       }

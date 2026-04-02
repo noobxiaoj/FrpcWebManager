@@ -126,6 +126,12 @@ func main() {
 	// 创建IP白名单中间件
 	ipWhitelistMiddleware := middleware.NewIPWhitelistMiddleware(settingsService)
 
+	// 创建密码认证中间件
+	passwordAuthMiddleware, err := middleware.NewPasswordAuthMiddleware(settingsService)
+	if err != nil {
+		log.Fatalf("初始化密码认证中间件失败: %v", err)
+	}
+
 	// 初始化任务服务(注入 serverService)
 	taskService := service.NewTaskService(taskRepo, processRepo, frpcManager, serverService)
 
@@ -135,7 +141,7 @@ func main() {
 	// 初始化 API 处理器
 	taskHandler := handler.NewTaskHandler(taskService)
 	serverHandler := handler.NewServerHandler(serverService)
-	settingsHandler := handler.NewSettingsHandler(settingsService)
+	settingsHandler := handler.NewSettingsHandler(settingsService, passwordAuthMiddleware)
 
 	// 从 settings.json 读取前端端口配置
 	frontendPort := 4500 // 默认端口
@@ -169,7 +175,14 @@ func main() {
 
 	// CORS 中间件（容器内前后端同源，但仍保留以兼容开发环境）
 	r.Use(func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		origin := c.Request.Header.Get("Origin")
+		if origin != "" {
+			// 需要支持登录态 Cookie，因此有 Origin 时回显具体来源，避免 credentials 与 * 冲突。
+			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+			c.Writer.Header().Set("Vary", "Origin")
+		} else {
+			c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		}
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
@@ -181,6 +194,10 @@ func main() {
 
 		c.Next()
 	})
+
+	// 密码访问控制中间件。
+	// 放在路由注册前统一生效，这样所有 API 都能按配置自动拦截。
+	r.Use(passwordAuthMiddleware.Middleware())
 
 	// 健康检查日志中间件（只记录 /api/health 的访问，便于Docker健康检查调试）
 	r.Use(func(c *gin.Context) {

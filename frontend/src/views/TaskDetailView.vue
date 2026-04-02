@@ -231,7 +231,9 @@ onMounted(async () => {
 // 加载设置
 const loadSettings = async () => {
   try {
-    const response = await fetch(`${getApiBaseUrl()}/api/settings`)
+    const response = await fetch(`${getApiBaseUrl()}/api/settings`, {
+      credentials: 'include'
+    })
     if (response.ok) {
       const data = await response.json()
       if (data.data && data.data.showServerName !== undefined) {

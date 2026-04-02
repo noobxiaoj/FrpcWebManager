@@ -17,6 +17,7 @@ const API_BASE_URL = getApiBaseUrl()
 async function request(url, options = {}) {
   const config = {
     ...options,
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       ...options.headers
@@ -29,6 +30,9 @@ async function request(url, options = {}) {
 
     // 检查业务状态码
     if (data.code !== 0 && data.code !== undefined) {
+      if (data.code === 1004) {
+        window.dispatchEvent(new CustomEvent('auth-expired'))
+      }
       throw new Error(data.message || data.error || '请求失败')
     }
 

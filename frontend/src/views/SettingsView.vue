@@ -31,13 +31,13 @@
     </PageHeader>
 
     <div class="settings-container">
-      <div class="setting-section">
-        <h2 class="section-title">服务器显示设置</h2>
-
+      <SettingSection
+        title="服务器显示设置"
+        section-id="server-display-settings-content"
+      >
         <SettingItem
           id="showServerPort"
           label="显示进程端口"
-          description="控制是否在服务器页面显示 frpc webServer 端口信息"
         >
           <Switch id="showServerPort" v-model="settings.showServerPort" :disabled="saving" />
         </SettingItem>
@@ -45,19 +45,18 @@
         <SettingItem
           id="showServerName"
           label="任务显示服务器名称"
-          description="控制在任务列表和任务详情中显示服务器名称而非IP地址"
         >
           <Switch id="showServerName" v-model="settings.showServerName" :disabled="saving" />
         </SettingItem>
-      </div>
+      </SettingSection>
 
-      <div class="setting-section">
-        <h2 class="section-title">数据刷新设置</h2>
-
+      <SettingSection
+        title="数据刷新设置"
+        section-id="data-refresh-settings-content"
+      >
         <SettingItem
           id="refreshInterval"
           label="刷新间隔"
-          description='日志和运行时间的自动刷新间隔，"不刷新"表示手动刷新'
         >
           <select
             id="refreshInterval"
@@ -78,19 +77,18 @@
         <SettingItem
           id="showRefreshTime"
           label="显示刷新时间"
-          description="控制是否在服务器页面显示距离上次刷新的时间"
         >
           <Switch id="showRefreshTime" v-model="settings.showRefreshTime" :disabled="saving" />
         </SettingItem>
-      </div>
+      </SettingSection>
 
-      <div class="setting-section">
-        <h2 class="section-title">前端服务设置</h2>
-
+      <SettingSection
+        title="前端服务设置"
+        section-id="frontend-service-settings-content"
+      >
         <SettingItem
           id="frontendPort"
           label="前端服务端口"
-          description="前端开发服务器监听的端口号（范围：1024-65535）"
           warning="修改端口后需要重启前端服务才能生效"
         >
           <input
@@ -104,15 +102,15 @@
             step="1"
           />
         </SettingItem>
-      </div>
+      </SettingSection>
 
-      <div class="setting-section">
-        <h2 class="section-title">访问控制设置</h2>
-
+      <SettingSection
+        title="访问控制设置"
+        section-id="access-control-settings-content"
+      >
         <SettingItem
           id="enableIPWhitelist"
           label="启用IP白名单"
-          description="开启后，只有白名单中的IP地址可以访问系统"
           warning="白名单设置修改后需要重启容器才能生效"
         >
           <Switch id="enableIPWhitelist" v-model="settings.enableIPWhitelist" :disabled="saving" />
@@ -123,12 +121,6 @@
           <div class="setting-item">
             <div class="setting-info full-width">
               <label class="setting-label">IP白名单</label>
-              <p class="setting-description">
-                添加允许访问系统的IP地址或CIDR网段（例如：192.168.1.100 或 192.168.1.0/24）
-              </p>
-              <p class="setting-description">
-                修改白名单后请重启容器使设置生效
-              </p>
 
               <div class="whitelist-input-group">
                 <input
@@ -189,13 +181,58 @@
             </div>
           </div>
         </div>
+      </SettingSection>
 
-      </div>
+      <SettingSection
+        title="密码设置"
+        section-id="password-settings-content"
+      >
+        <SettingItem id="passwordSetting" label="设置启动密码">
+          <div class="password-actions">
+            <AppButton
+              v-if="!settings.passwordAuth.enabled"
+              class="password-action-button"
+              @click="openPasswordModal('add')"
+              :disabled="saving || passwordModalSaving"
+            >
+              添加密码
+            </AppButton>
+
+            <template v-else>
+              <AppButton
+                variant="secondary"
+                class="password-action-button"
+                @click="openPasswordModal('change')"
+                :disabled="saving || passwordModalSaving"
+              >
+                更改密码
+              </AppButton>
+              <AppButton
+                variant="danger"
+                class="password-action-button password-action-button--danger"
+                @click="openPasswordModal('delete')"
+                :disabled="saving || passwordModalSaving"
+              >
+                删除密码
+              </AppButton>
+            </template>
+          </div>
+        </SettingItem>
+      </SettingSection>
     </div>
 
     <div v-if="saveMessage" class="save-message" :class="{ 'success': saveSuccess, 'error': !saveSuccess }">
       {{ saveMessage }}
     </div>
+
+    <PasswordSettingsModal
+      :visible="passwordModalVisible"
+      :mode="passwordModalMode"
+      :saving="passwordModalSaving"
+      :current-username="settings.passwordAuth.username"
+      @close="closePasswordModal"
+      @submit="handlePasswordSubmit"
+    />
   </div>
 </template>
 
@@ -207,6 +244,8 @@ import AppButton from '@/components/AppButton.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import SettingItem from '@/components/SettingItem.vue'
 import Switch from '@/components/AppSwitch.vue'
+import SettingSection from '@/components/SettingSection.vue'
+import PasswordSettingsModal from '@/components/PasswordSettingsModal.vue'
 
 const taskStore = useTaskStore()
 
@@ -217,7 +256,11 @@ const settings = ref({
   showServerName: false,
   frontendPort: 4500,
   enableIPWhitelist: false,
-  ipWhitelist: []
+  ipWhitelist: [],
+  passwordAuth: {
+    enabled: false,
+    username: ''
+  }
 })
 
 const saving = ref(false)
@@ -226,18 +269,30 @@ const saveSuccess = ref(false)
 const newIP = ref('')
 const ipError = ref('')
 const originalSettings = ref(null)
+const passwordModalVisible = ref(false)
+const passwordModalMode = ref('add')
+const passwordModalSaving = ref(false)
 
 // 加载设置
 const loadSettings = async () => {
   try {
-    const response = await fetch(`${getApiBaseUrl()}/api/settings`)
+    const response = await fetch(`${getApiBaseUrl()}/api/settings`, {
+      credentials: 'include'
+    })
     if (!response.ok) {
       throw new Error('获取设置失败')
     }
     const data = await response.json()
     if (data.data) {
-      settings.value = JSON.parse(JSON.stringify(data.data))
-      originalSettings.value = JSON.parse(JSON.stringify(data.data))
+      const normalizedSettings = {
+        ...JSON.parse(JSON.stringify(data.data)),
+        passwordAuth: {
+          enabled: data.data.passwordAuth?.enabled || false,
+          username: data.data.passwordAuth?.username || ''
+        }
+      }
+      settings.value = normalizedSettings
+      originalSettings.value = JSON.parse(JSON.stringify(normalizedSettings))
       // 同步到 taskStore
       taskStore.showServerName = data.data.showServerName || false
     }
@@ -258,6 +313,18 @@ const resetSettings = () => {
   if (originalSettings.value) {
     settings.value = JSON.parse(JSON.stringify(originalSettings.value))
   }
+}
+
+// 打开密码设置弹窗
+const openPasswordModal = (mode) => {
+  passwordModalMode.value = mode
+  passwordModalVisible.value = true
+}
+
+// 关闭密码设置弹窗
+const closePasswordModal = () => {
+  if (passwordModalSaving.value) return
+  passwordModalVisible.value = false
 }
 
 // 端口验证函数
@@ -283,6 +350,7 @@ const saveSettings = async () => {
   try {
     const response = await fetch(`${getApiBaseUrl()}/api/settings`, {
       method: 'PUT',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json'
       },
@@ -404,6 +472,81 @@ const removeIP = (index) => {
   }
 }
 
+/**
+ * 统一处理密码设置弹窗提交。
+ * 根据当前模式调用不同接口，并在成功后同步本地设置状态。
+ *
+ * @param {Object} payload - 弹窗提交的数据
+ * @returns {Promise<void>}
+ */
+const handlePasswordSubmit = async (payload) => {
+  passwordModalSaving.value = true
+
+  try {
+    let response
+
+    if (payload.mode === 'add') {
+      response = await fetch(`${getApiBaseUrl()}/api/settings/password`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          username: payload.username,
+          password: payload.password
+        })
+      })
+    } else if (payload.mode === 'change') {
+      response = await fetch(`${getApiBaseUrl()}/api/settings/password`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          oldPassword: payload.oldPassword,
+          newPassword: payload.newPassword
+        })
+      })
+    } else {
+      response = await fetch(`${getApiBaseUrl()}/api/settings/password`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          username: payload.username,
+          password: payload.password
+        })
+      })
+    }
+
+    const data = await response.json()
+    if (!response.ok || (data.code !== undefined && data.code !== 0)) {
+      throw new Error(data.message || '密码设置失败')
+    }
+
+    settings.value.passwordAuth = {
+      enabled: data.data?.passwordAuth?.enabled || false,
+      username: data.data?.passwordAuth?.username || ''
+    }
+
+    if (originalSettings.value) {
+      originalSettings.value.passwordAuth = JSON.parse(JSON.stringify(settings.value.passwordAuth))
+    }
+
+    closePasswordModal()
+    showSaveMessage(data.data?.message || '密码设置已更新', true)
+  } catch (error) {
+    console.error('密码设置失败:', error)
+    showSaveMessage(error.message || '密码设置失败', false)
+  } finally {
+    passwordModalSaving.value = false
+  }
+}
+
 onMounted(() => {
   loadSettings()
 })
@@ -420,7 +563,7 @@ onMounted(() => {
 .settings-container {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.25rem;
 }
 
 /* 保存按钮样式 */
@@ -771,6 +914,35 @@ onMounted(() => {
   border-radius: var(--radius-md);
 }
 
+.password-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.password-action-button {
+  min-height: 2.1rem;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.password-action-button--danger {
+  background: linear-gradient(
+    135deg,
+    var(--accent-color) 0%,
+    color-mix(in srgb, var(--accent-color) 82%, black) 100%
+  );
+  color: #fff;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--accent-color) 28%, transparent);
+}
+
+.password-action-button--danger:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--accent-color) 36%, transparent);
+}
+
 @media (max-width: 768px) {
   .settings {
     padding: 1rem;
@@ -793,6 +965,11 @@ onMounted(() => {
 
   .ip-input {
     width: 100%;
+  }
+
+  .password-actions {
+    width: 100%;
+    flex-direction: column;
   }
 }
 </style>

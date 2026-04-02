@@ -804,7 +804,9 @@ onMounted(() => {
   refreshIntervals.value['_timeUpdate'] = timeUpdateInterval
 
   // 监听设置更新事件
-  const eventSource = new EventSource(`${getApiBaseUrl()}/api/settings/events`)
+  const eventSource = new EventSource(`${getApiBaseUrl()}/api/settings/events`, {
+    withCredentials: true
+  })
   eventSource.addEventListener('settings-updated', () => {
     console.log('收到设置更新通知')
     loadSettings()
@@ -822,7 +824,9 @@ onMounted(() => {
 const loadSettings = async () => {
   try {
     const API_BASE_URL = getApiBaseUrl()
-    const response = await fetch(`${API_BASE_URL}/api/settings`)
+    const response = await fetch(`${API_BASE_URL}/api/settings`, {
+      credentials: 'include'
+    })
     if (!response.ok) {
       throw new Error('获取设置失败')
     }

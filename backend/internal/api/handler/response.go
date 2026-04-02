@@ -16,6 +16,7 @@ const (
 	CodeBadRequest   = 1001  // 请求参数错误
 	CodeNotFound     = 1002  // 资源不存在
 	CodeInternalError = 1003 // 内部错误
+	CodeUnauthorized = 1004  // 未授权或未登录
 	CodeTaskError    = 2001  // 任务相关错误
 	CodeProcessError = 2002  // 进程相关错误
 	CodeConfigError  = 2003  // 配置相关错误

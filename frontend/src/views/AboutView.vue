@@ -219,7 +219,9 @@ const loadMarkdownFile = async (filename) => {
     console.log('加载文件使用的 API:', url)
     console.log('环境变量 VITE_API_URL:', import.meta.env.VITE_API_URL)
 
-    const response = await fetch(url)
+    const response = await fetch(url, {
+      credentials: 'include'
+    })
     console.log('响应状态:', response.status, response.statusText)
 
     if (!response.ok) {
@@ -262,7 +264,9 @@ const loadChangelog = async () => {
     console.log('使用 API 地址:', apiUrl)
     console.log('完整请求 URL:', `${apiUrl}/api/changelog/files`)
 
-    const versionsResponse = await fetch(`${apiUrl}/api/changelog/files`)
+    const versionsResponse = await fetch(`${apiUrl}/api/changelog/files`, {
+      credentials: 'include'
+    })
     console.log('响应状态:', versionsResponse.status, versionsResponse.statusText)
 
     if (!versionsResponse.ok) {
