@@ -11,20 +11,43 @@
     <!-- 内容简介 -->
     <section class="section">
       <h2 class="section-title">内容简介</h2>
-      <UpdateCard :content="introductionContent" highlighted />
+      <UpdateCard
+        :content="introductionContent"
+        :status="introductionStatus"
+        error-message="简介加载失败"
+        empty-message="暂无简介内容"
+        highlighted
+      />
     </section>
 
     <!-- 当前更新 -->
     <section class="section">
       <h2 class="section-title">当前更新</h2>
-      <UpdateCard :content="latestUpdate" highlighted />
+      <UpdateCard
+        :content="latestUpdate"
+        :status="latestUpdateStatus"
+        error-message="当前更新加载失败"
+        empty-message="暂无更新内容"
+        highlighted
+      />
     </section>
 
     <!-- 以前更新 -->
     <section class="section">
       <h2 class="section-title" id="history-title">历史更新</h2>
       <div class="update-history">
-        <UpdateCard v-for="(update, index) in paginatedUpdates" :key="index" :content="update" />
+        <UpdateCard
+          v-for="(update, index) in paginatedUpdates"
+          :key="index"
+          :content="update"
+          status="success"
+        />
+        <UpdateCard
+          v-if="historyUpdatesStatus !== 'success' || historyUpdates.length === 0"
+          :status="historyUpdatesStatus"
+          error-message="历史更新加载失败"
+          empty-message="暂无历史更新"
+        />
       </div>
 
       <!-- 分页控件 -->
@@ -101,10 +124,50 @@ import AppButton from '@/components/AppButton.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import UpdateCard from '@/components/UpdateCard.vue'
 
+/**
+ * 关于页内容状态常量。
+ * 统一状态字面量，避免页面与子组件之间出现拼写不一致。
+ */
+const CONTENT_STATUS = {
+  LOADING: 'loading',
+  SUCCESS: 'success',
+  ERROR: 'error',
+  EMPTY: 'empty'
+}
+
 const introductionContent = ref('')
 const latestUpdate = ref('')
 const historyUpdates = ref([])
 const loadError = ref('')
+const introductionStatus = ref(CONTENT_STATUS.LOADING)
+const latestUpdateStatus = ref(CONTENT_STATUS.LOADING)
+const historyUpdatesStatus = ref(CONTENT_STATUS.LOADING)
+
+/**
+ * 仅在开发环境输出调试日志。
+ * 这样保留排障能力，同时避免生产环境噪声和内部信息暴露过多。
+ *
+ * @param {...unknown} args - 需要输出的调试内容
+ * @returns {void}
+ */
+const debugLog = (...args) => {
+  if (import.meta.env.DEV) {
+    console.log(...args)
+  }
+}
+
+/**
+ * 仅在开发环境输出错误细节。
+ * 用户可见区域只展示简洁提示，详细错误保留在开发态控制台。
+ *
+ * @param {...unknown} args - 需要输出的错误详情
+ * @returns {void}
+ */
+const debugError = (...args) => {
+  if (import.meta.env.DEV) {
+    console.error(...args)
+  }
+}
 
 // 分页状态
 const currentPage = ref(1)
@@ -216,24 +279,28 @@ const loadMarkdownFile = async (filename) => {
   try {
     const apiUrl = getApiUrl()
     const url = `${apiUrl}/api/changelog/file/${filename}`
-    console.log('加载文件使用的 API:', url)
-    console.log('环境变量 VITE_API_URL:', import.meta.env.VITE_API_URL)
+    debugLog('加载文件使用的 API:', url)
+    debugLog('环境变量 VITE_API_URL:', import.meta.env.VITE_API_URL)
 
     const response = await fetch(url, {
       credentials: 'include'
     })
-    console.log('响应状态:', response.status, response.statusText)
+    debugLog('响应状态:', response.status, response.statusText)
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
 
     const data = await response.json()
-    console.log('响应数据:', data)
+    if (!data?.data || typeof data.data.content !== 'string') {
+      throw new Error('返回数据格式不正确')
+    }
+
+    debugLog('响应数据:', data)
     return data.data.content
   } catch (error) {
-    console.error(`Error loading ${filename}:`, error)
-    console.error('错误堆栈:', error.stack)
+    debugError(`Error loading ${filename}:`, error)
+    debugError('错误堆栈:', error?.stack)
     return null
   }
 }
@@ -248,33 +315,45 @@ const extractVersionFromFilename = (filename) => {
 // 加载所有更新日志
 const loadChangelog = async () => {
   try {
-    console.log('开始加载更新日志...')
-    console.log('当前页面地址:', window.location.href)
+    debugLog('开始加载更新日志...')
+    debugLog('当前页面地址:', window.location.href)
     loadError.value = ''
+    introductionStatus.value = CONTENT_STATUS.LOADING
+    latestUpdateStatus.value = CONTENT_STATUS.LOADING
+    historyUpdatesStatus.value = CONTENT_STATUS.LOADING
+    introductionContent.value = ''
+    latestUpdate.value = ''
+    historyUpdates.value = []
 
     // 加载简介
     const intro = await loadMarkdownFile('简介.md')
-    console.log('简介内容:', intro ? '加载成功' : '加载失败')
-    if (intro) {
+    debugLog('简介内容:', intro ? '加载成功' : '加载失败')
+    if (typeof intro === 'string' && intro.trim()) {
       introductionContent.value = intro
+      introductionStatus.value = CONTENT_STATUS.SUCCESS
+    } else if (intro === '') {
+      introductionStatus.value = CONTENT_STATUS.EMPTY
+    } else {
+      introductionStatus.value = CONTENT_STATUS.ERROR
     }
 
     // 从后端 API 获取版本文件列表
     const apiUrl = getApiUrl()
-    console.log('使用 API 地址:', apiUrl)
-    console.log('完整请求 URL:', `${apiUrl}/api/changelog/files`)
+    debugLog('使用 API 地址:', apiUrl)
+    debugLog('完整请求 URL:', `${apiUrl}/api/changelog/files`)
 
     const versionsResponse = await fetch(`${apiUrl}/api/changelog/files`, {
       credentials: 'include'
     })
-    console.log('响应状态:', versionsResponse.status, versionsResponse.statusText)
+    debugLog('响应状态:', versionsResponse.status, versionsResponse.statusText)
 
     if (!versionsResponse.ok) {
-      throw new Error(`无法连接到后端服务器 (${apiUrl}) - 状态码: ${versionsResponse.status}`)
+      throw new Error(`更新日志列表加载失败（状态码: ${versionsResponse.status}）`)
     }
+
     const data = await versionsResponse.json()
     const updateFiles = data.data.files || []
-    console.log('从API获取的版本文件列表:', updateFiles)
+    debugLog('从API获取的版本文件列表:', updateFiles)
 
     // 过滤出有效的更新文件(排除简介等特殊文件)
     const updates = updateFiles
@@ -284,46 +363,66 @@ const loadChangelog = async () => {
       })
       .filter(item => item !== null)
 
-    console.log('找到的更新文件:', updates)
+    debugLog('找到的更新文件:', updates)
 
     // 按版本号排序
     updates.sort((a, b) => compareVersions(a.version, b.version))
-    console.log('排序后的更新列表:', updates)
+    debugLog('排序后的更新列表:', updates)
 
     // 加载所有更新的内容
     const updateContents = await Promise.all(
       updates.map(async (update) => {
         const content = await loadMarkdownFile(update.filename)
-        console.log(`加载 ${update.filename}:`, content ? '成功' : '失败')
+        debugLog(`加载 ${update.filename}:`, content ? '成功' : '失败')
         return { content, filename: update.filename }
       })
     )
 
     // 过滤掉加载失败的内容
-    const validUpdates = updateContents.filter(item => item.content !== null)
-    console.log('有效的更新数量:', validUpdates.length)
+    const validUpdates = updateContents.filter(item => typeof item.content === 'string' && item.content.trim())
+    const failedUpdates = updateContents.filter(item => item.content === null)
+    debugLog('有效的更新数量:', validUpdates.length)
 
     // 第一个作为最新更新
     if (validUpdates.length > 0) {
       latestUpdate.value = validUpdates[0].content
       historyUpdates.value = validUpdates.slice(1).map(item => item.content)
-      console.log('最新更新已设置,历史更新数量:', historyUpdates.value.length)
+      latestUpdateStatus.value = CONTENT_STATUS.SUCCESS
+      historyUpdatesStatus.value = historyUpdates.value.length > 0 ? CONTENT_STATUS.SUCCESS : CONTENT_STATUS.EMPTY
+      debugLog('最新更新已设置,历史更新数量:', historyUpdates.value.length)
+    } else {
+      latestUpdateStatus.value = updates.length > 0 ? CONTENT_STATUS.ERROR : CONTENT_STATUS.EMPTY
+      historyUpdatesStatus.value = updates.length > 1 ? CONTENT_STATUS.ERROR : CONTENT_STATUS.EMPTY
+    }
+
+    if (failedUpdates.length > 0 && !loadError.value) {
+      loadError.value = '部分更新日志未能成功加载，请稍后重试或检查文档文件是否完整。'
+    }
+
+    if (updates.length === 0) {
+      latestUpdateStatus.value = CONTENT_STATUS.EMPTY
+      historyUpdatesStatus.value = CONTENT_STATUS.EMPTY
     }
   } catch (error) {
-    console.error('Error loading changelog:', error)
-    const apiUrl = getApiUrl()
-    loadError.value = `加载失败: ${error.message}\n\n调试信息:\n- API 地址: ${apiUrl}\n- 当前页面: ${window.location.href}\n- 主机名: ${window.location.hostname}\n\n请检查:\n1. 后端服务器是否在 ${apiUrl} 运行\n2. 浏览器控制台查看详细错误(F12)\n3. 确保后端和前端在同一台机器上`
+    debugError('Error loading changelog:', error)
+    loadError.value = `更新日志加载失败：${error.message || '请稍后重试'}`
+    if (latestUpdateStatus.value === CONTENT_STATUS.LOADING) {
+      latestUpdateStatus.value = CONTENT_STATUS.ERROR
+    }
+    if (historyUpdatesStatus.value === CONTENT_STATUS.LOADING) {
+      historyUpdatesStatus.value = CONTENT_STATUS.ERROR
+    }
   }
 }
 
 onMounted(() => {
-  console.log('===== AboutView 组件已挂载 =====')
-  console.log('环境变量检查:')
-  console.log('  import.meta.env.VITE_API_URL:', import.meta.env.VITE_API_URL)
-  console.log('  window.location.hostname:', window.location.hostname)
-  console.log('  window.location.protocol:', window.location.protocol)
-  console.log('  getApiUrl():', getApiUrl())
-  console.log('==============================')
+  debugLog('===== AboutView 组件已挂载 =====')
+  debugLog('环境变量检查:')
+  debugLog('  import.meta.env.VITE_API_URL:', import.meta.env.VITE_API_URL)
+  debugLog('  window.location.hostname:', window.location.hostname)
+  debugLog('  window.location.protocol:', window.location.protocol)
+  debugLog('  getApiUrl():', getApiUrl())
+  debugLog('==============================')
   loadChangelog()
 })
 </script>

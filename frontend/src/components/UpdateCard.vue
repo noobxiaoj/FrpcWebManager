@@ -1,7 +1,9 @@
 <template>
   <div class="update-card markdown-content" :class="{ 'current-update': highlighted }">
-    <div v-if="content" v-html="renderedContent"></div>
-    <div v-else class="loading">{{ t('common.loading') }}</div>
+    <div v-if="status === 'success' && content" v-html="renderedContent"></div>
+    <div v-else-if="status === 'loading'" class="state-message">{{ t('common.loading') }}</div>
+    <div v-else-if="status === 'error'" class="state-message state-message--error">{{ errorMessage || '内容加载失败' }}</div>
+    <div v-else class="state-message">{{ emptyMessage || '暂无内容' }}</div>
   </div>
 </template>
 
@@ -11,7 +13,38 @@ import MarkdownIt from 'markdown-it'
 import { useI18n } from '@/utils/i18n'
 
 const props = defineProps({
+  /**
+   * Markdown 原始内容。
+   * 仅在状态为 success 时参与渲染，避免用空字符串混淆“加载中”和“暂无内容”。
+   */
   content: {
+    type: String,
+    default: ''
+  },
+  /**
+   * 卡片当前展示状态。
+   * - loading: 正在加载
+   * - success: 加载成功，渲染 Markdown
+   * - error: 加载失败，显示错误提示
+   * - empty: 没有内容可展示
+   */
+  status: {
+    type: String,
+    default: 'success'
+  },
+  /**
+   * 错误态文案。
+   * 由上层传入，避免组件内部拼接业务相关错误描述。
+   */
+  errorMessage: {
+    type: String,
+    default: ''
+  },
+  /**
+   * 空态文案。
+   * 当内容为空且不是加载中时，用于向用户明确表达“暂无内容”。
+   */
+  emptyMessage: {
     type: String,
     default: ''
   },
@@ -23,12 +56,28 @@ const props = defineProps({
 
 const { t } = useI18n()
 
+/**
+ * Markdown 渲染器实例。
+ *
+ * 安全策略：
+ * 1. 显式关闭原生 HTML 渲染，避免 changelog 中混入的 HTML 片段直接进入 DOM
+ * 2. 保留 linkify / typographer，继续支持常规 Markdown 展示体验
+ *
+ * 说明：
+ * 当前 about 文档来自仓库内置的静态 Markdown，关闭 html 不会影响现有文档展示，
+ * 但可以为未来文档来源变化提供更稳妥的默认安全边界。
+ */
 const md = new MarkdownIt({
-  html: true,
+  html: false,
   linkify: true,
   typographer: true
 })
 
+/**
+ * 将 Markdown 文本转换为安全性更高的 HTML 片段。
+ *
+ * @returns {string} 返回供 `v-html` 渲染的 HTML 字符串
+ */
 const renderedContent = computed(() => {
   return md.render(props.content)
 })
@@ -53,12 +102,16 @@ const renderedContent = computed(() => {
   border-left: 4px solid var(--accent-color);
 }
 
-/* 加载状态样式 */
-.loading {
+/* 统一状态文案样式，避免 loading / error / empty 各自分散维护。 */
+.state-message {
   color: var(--text-secondary);
   text-align: center;
   padding: 2rem;
   font-style: italic;
+}
+
+.state-message--error {
+  color: var(--danger-color);
 }
 
 /* Markdown 内容样式 */
