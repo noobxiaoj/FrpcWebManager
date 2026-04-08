@@ -9,6 +9,7 @@ const (
 	ServerStatusOnline            ServerStatus = "online"             // 在线：有任务运行，且 frpc 进程也在运行
 	ServerStatusOffline           ServerStatus = "offline"            // 离线：有任务但没有任务运行，且 frpc 进程也未运行
 	ServerStatusNoTask            ServerStatus = "no_task"            // 无任务：该服务器下没有任何任务
+	ServerStatusPaused            ServerStatus = "paused"             // 暂停：保留任务运行状态，但禁止 frpc 自动启动
 	ServerStatusFault             ServerStatus = "fault"              // 故障：任务运行状态与 frpc 进程状态不一致
 	ServerStatusSuspectedAbnormal ServerStatus = "suspected_abnormal" // 疑似异常：落入未覆盖的边界场景
 )
@@ -26,6 +27,7 @@ type Server struct {
 	Name             string       `json:"name"`             // 服务器名称
 	Address          string       `json:"address"`          // 服务器地址（包含端口）
 	Status           ServerStatus `json:"status"`           // 服务器状态
+	Paused           bool         `json:"paused"`           // 是否暂停；暂停后不会自动拉起 frpc 进程
 	TaskCount        int          `json:"taskCount"`        // 任务数量
 	Uptime           string       `json:"uptime"`           // 运行时长
 	LogMaxHeight     string       `json:"logMaxHeight"`     // 日志最大高度

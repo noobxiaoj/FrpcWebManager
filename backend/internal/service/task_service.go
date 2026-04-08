@@ -227,6 +227,11 @@ func (s *TaskService) StartTask(id string) error {
 		return fmt.Errorf("更新任务状态失败: %w", err)
 	}
 
+	isPaused, err := s.serverService.IsServerPausedByAddr(task.ServerAddr, task.ServerPort)
+	if err == nil && isPaused {
+		return nil
+	}
+
 	// 情况1：服务器已有其他任务运行 -> 使用热重载
 	if runningCount > 0 {
 		if err := s.reloadServerWithTasks(task.ServerAddr, task.ServerPort, serverTasks); err != nil {
@@ -311,6 +316,11 @@ func (s *TaskService) StopTask(id string) error {
 		return fmt.Errorf("更新任务状态失败: %w", err)
 	}
 
+	isPaused, err := s.serverService.IsServerPausedByAddr(task.ServerAddr, task.ServerPort)
+	if err == nil && isPaused {
+		return nil
+	}
+
 	// 情况1：停止后还有其他任务运行 -> 热重载移除该任务
 	if remainingRunningCount > 0 {
 		if err := s.reloadServerWithTasks(task.ServerAddr, task.ServerPort, serverTasks); err != nil {
@@ -361,6 +371,11 @@ func (s *TaskService) ReloadTask(id string) error {
 	// 检查任务是否在运行
 	if task.Status != model.TaskStatusRunning {
 		return fmt.Errorf("任务未运行")
+	}
+
+	isPaused, err := s.serverService.IsServerPausedByAddr(task.ServerAddr, task.ServerPort)
+	if err == nil && isPaused {
+		return fmt.Errorf("服务器当前处于暂停状态，无法重载")
 	}
 
 	// 简单实现：先停止再启动
@@ -439,6 +454,12 @@ func (s *TaskService) RestoreRunningTasks() error {
 		serverAddr := tasks[0].ServerAddr
 		serverPort := tasks[0].ServerPort
 		authToken := tasks[0].AuthToken
+
+		isPaused, pauseErr := s.serverService.IsServerPausedByAddr(serverAddr, serverPort)
+		if pauseErr == nil && isPaused {
+			fmt.Printf("服务器 %s 处于暂停状态，跳过自动恢复\n", serverKey)
+			continue
+		}
 
 		fmt.Printf("恢复服务器 %s 的 %d 个任务...\n", serverKey, len(tasks))
 

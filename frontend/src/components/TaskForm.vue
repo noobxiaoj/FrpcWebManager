@@ -109,6 +109,7 @@
                   'status-online': selectedServer.status === 'online',
                   'status-offline': selectedServer.status === 'offline',
                   'status-no-task': selectedServer.status === 'no_task',
+                  'status-paused': selectedServer.status === 'paused',
                   'status-fault': selectedServer.status === 'fault',
                   'status-suspected-abnormal': selectedServer.status === 'suspected_abnormal'
                 }"
@@ -455,6 +456,8 @@ const getStatusText = (status) => {
       return t('status.server.offline')
     case 'no_task':
       return t('status.server.noTask')
+    case 'paused':
+      return t('status.server.paused')
     case 'fault':
       return t('status.server.fault')
     case 'suspected_abnormal':
@@ -711,6 +714,11 @@ onMounted(() => {
 .status-no-task {
   background: var(--neutral-soft-bg);
   color: var(--text-secondary);
+}
+
+.status-paused {
+  background: var(--paused-color-bg);
+  color: var(--paused-color);
 }
 
 .status-fault {

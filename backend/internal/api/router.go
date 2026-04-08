@@ -55,6 +55,8 @@ func SetupRoutes(r *gin.Engine, taskHandler *handler.TaskHandler, serverHandler 
 			servers.POST("", serverHandler.CreateServer)               // 创建服务器
 			servers.GET("/:id", serverHandler.GetServer)               // 获取服务器详情
 			servers.PUT("/:id", serverHandler.UpdateServer)            // 更新服务器
+			servers.POST("/:id/pause", serverHandler.PauseServer)      // 暂停服务器进程
+			servers.POST("/:id/start", serverHandler.StartServer)      // 启动暂停中的服务器进程
 			servers.POST("/:id/restart", serverHandler.RestartServer)  // 重启服务器进程
 			servers.DELETE("/:id", serverHandler.DeleteServer)         // 删除服务器
 			servers.PUT("/order", serverHandler.UpdateServerOrder)     // 更新服务器排序

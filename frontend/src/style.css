@@ -32,6 +32,8 @@
   --danger-color: #ef4444;
   --danger-color-bg: rgba(239, 68, 68, 0.15);
   --danger-color-rgb: 239, 68, 68;
+  --paused-color: #8b5cf6;
+  --paused-color-bg: rgba(139, 92, 246, 0.15);
   --edit-color: #3b82f6;
   --edit-color-bg: rgba(59, 130, 246, 0.15);
 
@@ -109,6 +111,8 @@
   --danger-color: #a855f7;
   --danger-color-bg: rgba(168, 85, 247, 0.15);
   --danger-color-rgb: 168, 85, 247;
+  --paused-color: #ef4444;
+  --paused-color-bg: rgba(239, 68, 68, 0.15);
   --edit-color: #22c55e;
   --edit-color-bg: rgba(34, 197, 94, 0.15);
 

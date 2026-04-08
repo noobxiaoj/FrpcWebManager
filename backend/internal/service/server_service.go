@@ -138,6 +138,10 @@ func (s *ServerService) RestartServer(id string) error {
 		return err
 	}
 
+	if server.Paused {
+		return s.StartPausedServer(id)
+	}
+
 	// 解析服务器地址
 	addr, port, err := parseServerAddress(server.Address)
 	if err != nil {
@@ -168,12 +172,114 @@ func (s *ServerService) RestartServer(id string) error {
 		}
 	}
 
+	// 重启前先清空旧日志，保证重启后的日志面板只展示本次启动后的新内容。
+	// 这里不进入静默模式，因为重启完成后仍需要继续正常采集新的启动日志。
+	if err := s.ClearLogs(id); err != nil {
+		return fmt.Errorf("清空服务器日志失败: %w", err)
+	}
+
 	// 使用现有关联任务重新启动进程组
 	if err := s.frpcManager.StartServer(addr, port, authToken, tasks); err != nil {
 		return fmt.Errorf("启动 frpc 进程失败: %w", err)
 	}
 
 	return nil
+}
+
+// PauseServer 暂停服务器。
+// 暂停后会保留任务原有运行状态，但立即停止该服务器对应的 frpc 进程，
+// 并且后续后端恢复流程不会自动重新拉起该服务器。
+func (s *ServerService) PauseServer(id string) error {
+	server, err := s.repo.GetServer(id)
+	if err != nil {
+		return err
+	}
+
+	addr, port, err := parseServerAddress(server.Address)
+	if err != nil {
+		return err
+	}
+
+	server.Paused = true
+	server.UpdatedAt = time.Now()
+	if err := s.repo.UpdateServer(server); err != nil {
+		return err
+	}
+
+	// 暂停前先进入日志静默状态，避免 stop 过程中的系统日志与进程尾部输出再次写回。
+	serverKey := fmt.Sprintf("%s:%d", addr, port)
+	s.frpcManager.GetLogCollector().MuteServer(serverKey)
+
+	if err := s.frpcManager.StopServer(addr, port); err != nil {
+		return fmt.Errorf("停止 frpc 进程失败: %w", err)
+	}
+
+	// 暂停后立即清空该服务器运行日志，避免旧日志与暂停后的静默状态混在一起。
+	if err := s.ClearLogs(id); err != nil {
+		return fmt.Errorf("清空服务器日志失败: %w", err)
+	}
+
+	// ClearLogs 会重新读取并保存一次服务器对象。
+	// 这里如果继续沿用暂停前读出来的 server，会把旧日志再次写回存储，
+	// 因此需要显式同步内存对象中的日志字段，保证后续状态刷新不会覆盖清空结果。
+	server.Logs = []model.LogEntry{}
+
+	return s.updateServerTaskCount(server)
+}
+
+// StartPausedServer 恢复被暂停的服务器。
+// 这里只会恢复“任务状态仍为 running”的任务组，避免把本就停止的任务一并拉起。
+func (s *ServerService) StartPausedServer(id string) error {
+	server, err := s.repo.GetServer(id)
+	if err != nil {
+		return err
+	}
+
+	addr, port, err := parseServerAddress(server.Address)
+	if err != nil {
+		return err
+	}
+
+	tasks, err := s.taskRepo.GetByServer(addr, port)
+	if err != nil {
+		return fmt.Errorf("获取服务器任务失败: %w", err)
+	}
+
+	if len(tasks) == 0 {
+		return fmt.Errorf("服务器没有关联任务，无法启动")
+	}
+
+	runningTasks := make([]*model.Task, 0, len(tasks))
+	authToken := ""
+	for _, task := range tasks {
+		if authToken == "" && task.AuthToken != "" {
+			authToken = task.AuthToken
+		}
+		if task.Status == model.TaskStatusRunning {
+			runningTasks = append(runningTasks, task)
+		}
+	}
+
+	if len(runningTasks) == 0 {
+		return fmt.Errorf("服务器没有处于运行中的任务，无法启动")
+	}
+
+	serverKey := fmt.Sprintf("%s:%d", addr, port)
+	s.frpcManager.GetLogCollector().UnmuteServer(serverKey)
+
+	if s.frpcManager.IsServerRunning(addr, port) {
+		if err := s.frpcManager.StopServer(addr, port); err != nil {
+			return fmt.Errorf("停止旧 frpc 进程失败: %w", err)
+		}
+	}
+
+	if err := s.frpcManager.StartServer(addr, port, authToken, runningTasks); err != nil {
+		return fmt.Errorf("启动 frpc 进程失败: %w", err)
+	}
+
+	server.Paused = false
+	server.UpdatedAt = time.Now()
+	return s.updateServerTaskCount(server)
 }
 
 // DeleteServer 删除服务器
@@ -405,7 +511,9 @@ func (s *ServerService) updateServerTaskCountWithoutSave(server *model.Server) e
 	hasRunningTask := runningTaskCount > 0
 
 	// 根据任务数量和进程状态更新服务器状态
-	if taskCount == 0 {
+	if server.Paused {
+		server.Status = model.ServerStatusPaused
+	} else if taskCount == 0 {
 		// 场景 1：该服务器完全没有任务。
 		server.Status = model.ServerStatusNoTask
 	} else if hasRunningTask && isFrpcRunning {
@@ -438,6 +546,8 @@ func (s *ServerService) updateServerTaskCountWithoutSave(server *model.Server) e
 	uptime := s.frpcManager.GetServerUptime(addr, port)
 	if uptime != "" {
 		server.Uptime = uptime
+	} else if server.Status == model.ServerStatusPaused {
+		server.Uptime = "已暂停"
 	} else if server.Status == model.ServerStatusOffline || server.Status == model.ServerStatusFault {
 		// 离线或故障且拿不到运行时长时，统一显示“未连接”，
 		// 这样可以明确告诉用户当前没有拿到可用的 frpc 运行时间信息。
@@ -445,6 +555,28 @@ func (s *ServerService) updateServerTaskCountWithoutSave(server *model.Server) e
 	}
 
 	return nil
+}
+
+// IsServerPausedByAddr 判断指定服务器当前是否为暂停态。
+// 任务服务会使用该方法阻止“暂停服务器上的任务操作”触发 frpc 自动拉起。
+func (s *ServerService) IsServerPausedByAddr(serverAddr string, serverPort int) (bool, error) {
+	servers, err := s.repo.ListServers()
+	if err != nil {
+		return false, err
+	}
+
+	for _, server := range servers {
+		addr, port, parseErr := parseServerAddress(server.Address)
+		if parseErr != nil {
+			continue
+		}
+
+		if addr == serverAddr && port == serverPort {
+			return server.Paused, nil
+		}
+	}
+
+	return false, fmt.Errorf("服务器不存在: %s:%d", serverAddr, serverPort)
 }
 
 // UpdateServerTaskCountByAddr 根据服务器地址和端口更新任务数量

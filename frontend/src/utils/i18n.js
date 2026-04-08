@@ -103,6 +103,7 @@ const messages = {
         online: '在线',
         offline: '离线',
         noTask: '无任务',
+        paused: '暂停',
         fault: '故障',
         suspectedAbnormal: '疑似异常',
         unknown: '未知'
@@ -283,6 +284,8 @@ const messages = {
     serverDetail: {
       backTitle: '返回列表',
       refreshTitle: '刷新详情与日志',
+      pauseTitle: '暂停服务器',
+      startTitle: '启动服务器',
       editTitle: '编辑服务器',
       restartTitle: '重启服务器',
       deleteTitle: '删除服务器',
@@ -323,6 +326,8 @@ const messages = {
         clearLogsFailed: '清空日志失败',
         checkTasksFailed: '检查服务器任务失败',
         updateFailed: '更新服务器失败',
+        pauseFailed: '暂停服务器失败',
+        startFailed: '启动服务器失败',
         restartFailed: '重启服务器失败',
         deleteFailed: '删除服务器失败',
         initFailed: '加载服务器详情失败'
@@ -511,6 +516,7 @@ const messages = {
         online: 'Online',
         offline: 'Offline',
         noTask: 'No Task',
+        paused: 'Paused',
         fault: 'Fault',
         suspectedAbnormal: 'Suspected Abnormal',
         unknown: 'Unknown'
@@ -691,6 +697,8 @@ const messages = {
     serverDetail: {
       backTitle: 'Back to list',
       refreshTitle: 'Refresh details and logs',
+      pauseTitle: 'Pause server',
+      startTitle: 'Start server',
       editTitle: 'Edit server',
       restartTitle: 'Restart server',
       deleteTitle: 'Delete server',
@@ -731,6 +739,8 @@ const messages = {
         clearLogsFailed: 'Failed to clear logs',
         checkTasksFailed: 'Failed to check related tasks',
         updateFailed: 'Failed to update server',
+        pauseFailed: 'Failed to pause server',
+        startFailed: 'Failed to start server',
         restartFailed: 'Failed to restart server',
         deleteFailed: 'Failed to delete server',
         initFailed: 'Failed to load server details'

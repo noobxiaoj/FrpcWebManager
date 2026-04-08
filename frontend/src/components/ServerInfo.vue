@@ -8,6 +8,7 @@
           'status-online': server.status === 'online',
           'status-offline': server.status === 'offline',
           'status-no-task': server.status === 'no_task',
+          'status-paused': server.status === 'paused',
           'status-fault': server.status === 'fault',
           'status-suspected-abnormal': server.status === 'suspected_abnormal'
         }"
@@ -55,6 +56,8 @@ const statusText = computed(() => {
       return t('status.server.offline')
     case 'no_task':
       return t('status.server.noTask')
+    case 'paused':
+      return t('status.server.paused')
     case 'fault':
       return t('status.server.fault')
     case 'suspected_abnormal':
@@ -156,6 +159,21 @@ const statusText = computed(() => {
 
 .status-no-task .status-indicator::after {
   background: var(--text-secondary);
+  animation: none;
+}
+
+.status-paused {
+  background: var(--paused-color-bg);
+  color: var(--paused-color);
+}
+
+.status-paused .status-indicator {
+  background: var(--paused-color);
+  box-shadow: 0 0 8px var(--paused-color);
+}
+
+.status-paused .status-indicator::after {
+  background: var(--paused-color);
   animation: none;
 }
 

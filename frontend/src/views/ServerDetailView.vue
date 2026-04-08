@@ -27,6 +27,7 @@
                 'status-online': server.status === 'online',
                 'status-offline': server.status === 'offline',
                 'status-no-task': server.status === 'no_task',
+                'status-paused': server.status === 'paused',
                 'status-fault': server.status === 'fault',
                 'status-suspected-abnormal': server.status === 'suspected_abnormal'
               }"
@@ -38,6 +39,23 @@
 
           <div class="header-actions">
             <AppButton
+              v-if="!isServerPaused"
+              class="btn-action pause"
+              preserve-style
+              @click="pauseServerProcess"
+              :disabled="actionLoading"
+              :title="t('serverDetail.pauseTitle')"
+            >
+              <template #icon>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="6" y="4" width="4" height="16" rx="1"></rect>
+                  <rect x="14" y="4" width="4" height="16" rx="1"></rect>
+                </svg>
+              </template>
+            </AppButton>
+
+            <AppButton
+              v-if="!isServerPaused"
               class="btn-action restart"
               preserve-style
               @click="restartServerProcess"
@@ -49,6 +67,21 @@
                   <polyline points="23 4 23 10 17 10"></polyline>
                   <polyline points="1 20 1 14 7 14"></polyline>
                   <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+              </template>
+            </AppButton>
+
+            <AppButton
+              v-if="isServerPaused"
+              class="btn-action start"
+              preserve-style
+              @click="startServerProcess"
+              :disabled="actionLoading"
+              :title="t('serverDetail.startTitle')"
+            >
+              <template #icon>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8 5v14l11-7z"></path>
                 </svg>
               </template>
             </AppButton>
@@ -640,6 +673,13 @@ const editableServer = computed(() => {
   }
 })
 
+/**
+ * 判断当前服务器是否处于暂停状态。
+ * 详情页顶部按钮与状态样式都会依赖该计算值，避免在模板里散落多处相同判断。
+ * @returns {boolean} 返回当前服务器是否已暂停。
+ */
+const isServerPaused = computed(() => server.value?.status === 'paused')
+
 const lastRefreshText = computed(() => {
   if (!lastRefreshTime.value) {
     return locale.value === 'en-US' ? '(not refreshed)' : '(未刷新)'
@@ -678,6 +718,8 @@ const getStatusText = (status) => {
       return t('status.server.offline')
     case 'no_task':
       return t('status.server.noTask')
+    case 'paused':
+      return t('status.server.paused')
     case 'fault':
       return t('status.server.fault')
     case 'suspected_abnormal':
@@ -967,6 +1009,46 @@ const submitEditServer = async (payload) => {
     alert(`${t('serverDetail.messages.updateFailed')}: ${error.message}`)
   } finally {
     editSubmitting.value = false
+  }
+}
+
+/**
+ * 暂停当前服务器。
+ * 暂停后后端会停止该服务器的 frpc 进程，并保持“暂停态”直到用户显式启动。
+ * @returns {Promise<void>} 无返回值
+ */
+const pauseServerProcess = async () => {
+  if (!server.value) return
+
+  try {
+    actionLoading.value = true
+    await serverAPI.pauseServer(server.value.id)
+    await refreshServerData()
+  } catch (error) {
+    console.error('暂停服务器失败:', error)
+    alert(`${t('serverDetail.messages.pauseFailed')}: ${error.message}`)
+  } finally {
+    actionLoading.value = false
+  }
+}
+
+/**
+ * 启动当前处于暂停状态的服务器。
+ * 这里会恢复该服务器下仍标记为 running 的任务对应的 frpc 进程组。
+ * @returns {Promise<void>} 无返回值
+ */
+const startServerProcess = async () => {
+  if (!server.value) return
+
+  try {
+    actionLoading.value = true
+    await serverAPI.startServer(server.value.id)
+    await refreshServerData()
+  } catch (error) {
+    console.error('启动服务器失败:', error)
+    alert(`${t('serverDetail.messages.startFailed')}: ${error.message}`)
+  } finally {
+    actionLoading.value = false
   }
 }
 
@@ -1275,6 +1357,15 @@ onUnmounted(() => {
   background: var(--text-secondary);
 }
 
+.status-paused {
+  background: var(--paused-color-bg);
+  color: var(--paused-color);
+}
+
+.status-paused .status-indicator {
+  background: var(--paused-color);
+}
+
 .status-fault {
   background: rgba(245, 158, 11, 0.12);
   color: #d97706;
@@ -1332,10 +1423,23 @@ onUnmounted(() => {
   color: var(--edit-color);
 }
 
+.btn-action.pause {
+  border-color: var(--paused-color);
+  background: var(--paused-color-bg);
+  color: var(--paused-color);
+}
+
 .btn-action.restart {
-  border-color: var(--info-color);
-  background: var(--info-color-bg);
-  color: var(--info-color);
+  /* 重启按钮使用警告色，和页面中的 warning 语义保持一致。 */
+  border-color: var(--warning-color);
+  background: var(--warning-color-bg);
+  color: var(--warning-color);
+}
+
+.btn-action.start {
+  border-color: var(--success-color);
+  background: var(--success-color-bg);
+  color: var(--success-color);
 }
 
 .btn-action.clear,

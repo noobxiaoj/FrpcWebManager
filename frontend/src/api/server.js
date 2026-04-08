@@ -138,6 +138,52 @@ export const serverAPI = {
   },
 
   /**
+   * 暂停服务器进程组。
+   */
+  async pauseServer(id) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/servers/${id}/pause`, {
+        method: 'POST',
+        credentials: 'include'
+      })
+      const result = await response.json()
+      if (result.code === 1004) {
+        window.dispatchEvent(new CustomEvent('auth-expired'))
+      }
+      if (result.code === 0) {
+        return result.data
+      }
+      throw new Error(result.message || '暂停服务器失败')
+    } catch (error) {
+      console.error('暂停服务器失败:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 启动暂停中的服务器进程组。
+   */
+  async startServer(id) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/servers/${id}/start`, {
+        method: 'POST',
+        credentials: 'include'
+      })
+      const result = await response.json()
+      if (result.code === 1004) {
+        window.dispatchEvent(new CustomEvent('auth-expired'))
+      }
+      if (result.code === 0) {
+        return result.data
+      }
+      throw new Error(result.message || '启动服务器失败')
+    } catch (error) {
+      console.error('启动服务器失败:', error)
+      throw error
+    }
+  },
+
+  /**
    * 删除服务器
    * @param {string} id - 服务器ID
    * @param {boolean} force - 是否强制删除（同时删除关联任务）

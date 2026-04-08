@@ -136,6 +136,50 @@ func (h *ServerHandler) RestartServer(c *gin.Context) {
 	})
 }
 
+// PauseServer 暂停服务器进程
+// @Summary 暂停服务器进程
+// @Description 停止服务器 frpc 进程并进入暂停状态，暂停后不会自动恢复
+// @Tags 服务器管理
+// @Accept json
+// @Produce json
+// @Param id path string true "服务器ID"
+// @Success 200 {object} Response
+// @Router /api/servers/{id}/pause [post]
+func (h *ServerHandler) PauseServer(c *gin.Context) {
+	id := c.Param("id")
+
+	if err := h.service.PauseServer(id); err != nil {
+		ErrorResponse(c, CodeInternalError, "暂停服务器失败", err)
+		return
+	}
+
+	SuccessResponse(c, gin.H{
+		"message": "服务器已暂停",
+	})
+}
+
+// StartServer 启动暂停中的服务器
+// @Summary 启动暂停中的服务器
+// @Description 恢复被暂停服务器的 frpc 进程，并按 running 任务重新拉起
+// @Tags 服务器管理
+// @Accept json
+// @Produce json
+// @Param id path string true "服务器ID"
+// @Success 200 {object} Response
+// @Router /api/servers/{id}/start [post]
+func (h *ServerHandler) StartServer(c *gin.Context) {
+	id := c.Param("id")
+
+	if err := h.service.StartPausedServer(id); err != nil {
+		ErrorResponse(c, CodeInternalError, "启动服务器失败", err)
+		return
+	}
+
+	SuccessResponse(c, gin.H{
+		"message": "服务器已启动",
+	})
+}
+
 // DeleteServer 删除服务器
 // @Summary 删除服务器
 // @Description 删除指定的服务器，如果有任务需要强制删除

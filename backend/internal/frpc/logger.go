@@ -19,6 +19,7 @@ type LogCollector struct {
 	logBuffers   map[string][]string // serverKey -> log lines
 	logMutex     sync.RWMutex
 	logCallbacks map[string]func([]model.LogEntry)
+	mutedServers map[string]bool
 }
 
 // NewLogCollector 创建日志收集器
@@ -27,6 +28,7 @@ func NewLogCollector(logDir string) *LogCollector {
 		logDir:       logDir,
 		logBuffers:   make(map[string][]string),
 		logCallbacks: make(map[string]func([]model.LogEntry)),
+		mutedServers: make(map[string]bool),
 	}
 }
 
@@ -47,6 +49,15 @@ func (lc *LogCollector) CollectLogs(serverKey string, reader io.Reader, stream s
 // addLog 添加日志
 func (lc *LogCollector) addLog(serverKey string, line string, stream string) {
 	lc.logMutex.Lock()
+
+	// 暂停中的服务器处于“静默期”：
+	// 这时即使 stop/reload 过程仍有收尾日志，也不再写入内存或文件视图，
+	// 以满足“暂停后日志应被清空且保持为空”的产品预期。
+	if lc.mutedServers[serverKey] {
+		lc.logMutex.Unlock()
+		return
+	}
+
 	// 解析日志级别
 	level := lc.parseLogLevel(line)
 
@@ -204,6 +215,24 @@ func (lc *LogCollector) ClearLogs(serverKey string) {
 	if err := os.Remove(logFile); err != nil && !os.IsNotExist(err) {
 		fmt.Printf("删除日志文件失败: %v\n", err)
 	}
+}
+
+// MuteServer 将指定服务器加入日志静默列表。
+// 静默期间新的系统日志和进程输出都会被丢弃，但不会影响已存在日志的读取与清空。
+func (lc *LogCollector) MuteServer(serverKey string) {
+	lc.logMutex.Lock()
+	defer lc.logMutex.Unlock()
+
+	lc.mutedServers[serverKey] = true
+}
+
+// UnmuteServer 取消指定服务器的日志静默状态。
+// 通常在服务器重新启动前调用，恢复正常日志采集。
+func (lc *LogCollector) UnmuteServer(serverKey string) {
+	lc.logMutex.Lock()
+	defer lc.logMutex.Unlock()
+
+	delete(lc.mutedServers, serverKey)
 }
 
 // readLogsFromFile 从日志文件读取日志
