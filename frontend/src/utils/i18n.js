@@ -131,9 +131,7 @@ const messages = {
         password: '密码设置'
       },
       fields: {
-        showServerPort: '显示进程端口',
         showServerName: '显示任务的服务器名称',
-        showRefreshTime: '显示刷新时间',
         showAboutButton: '显示关于按键',
         showLockButton: '显示锁定按键',
         showLanguageButton: '显示语言按键',
@@ -270,9 +268,7 @@ const messages = {
         password: 'Password'
       },
       fields: {
-        showServerPort: 'Show process port',
         showServerName: 'Show the task server name',
-        showRefreshTime: 'Show refresh time',
         showAboutButton: 'Show About button',
         showLockButton: 'Show Lock button',
         showLanguageButton: 'Show Language button',

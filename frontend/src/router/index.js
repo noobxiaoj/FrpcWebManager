@@ -10,6 +10,11 @@ const router = createRouter({
       component: HomeView
     },
     {
+      path: '/servers/:id',
+      name: 'server-detail',
+      component: () => import('../views/ServerDetailView.vue')
+    },
+    {
       path: '/tasks',
       name: 'task-list',
       component: () => import('../views/TaskListView.vue')

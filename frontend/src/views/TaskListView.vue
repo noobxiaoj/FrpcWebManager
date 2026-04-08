@@ -51,21 +51,11 @@
     <!-- 任务列表 -->
     <div v-else-if="tasks.length > 0" class="task-grid">
       <div
-        v-for="(task, index) in tasks"
+        v-for="task in tasks"
         :key="task.id"
         class="task-card"
-        :class="{
-          'task-running': task.status === 'running',
-          'dragging': isDragging && draggedIndex === index,
-          'drag-over': dragOverIndex === index
-        }"
-        :draggable="true"
+        :class="{ 'task-running': task.status === 'running' }"
         @click="viewTask(task.id)"
-        @dragstart="handleDragStart(index, $event)"
-        @dragend="handleDragEnd"
-        @dragover="handleDragOver(index, $event)"
-        @dragleave="handleDragLeave"
-        @drop="handleDrop(index, $event)"
       >
         <div class="task-card-header">
           <h3 class="task-name">{{ task.name }}</h3>
@@ -111,7 +101,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, watch, ref } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useTaskStore } from '@/stores/task'
 import AppButton from '@/components/AppButton.vue'
@@ -123,7 +113,7 @@ const router = useRouter()
 const route = useRoute()
 const taskStore = useTaskStore()
 
-const tasks = computed(() => taskStore.sortedTasks)
+const tasks = computed(() => taskStore.tasks)
 
 const handleRefresh = () => {
   taskStore.fetchTasks()
@@ -131,7 +121,6 @@ const handleRefresh = () => {
 
 onMounted(async () => {
   await loadSettings()
-  taskStore.loadTaskOrder()
   taskStore.fetchTasks()
   taskStore.fetchServers()
 })
@@ -179,79 +168,6 @@ const getDisplayText = (task) => {
   return `${task.serverAddr}:${task.serverPort}`
 }
 
-// 拖放相关
-const draggedIndex = ref(null)
-const dragOverIndex = ref(null)
-const isDragging = ref(false)
-
-const handleDragStart = (index, event) => {
-  draggedIndex.value = index
-  isDragging.value = true
-  event.dataTransfer.effectAllowed = 'move'
-  event.dataTransfer.setData('text/html', event.target.innerHTML)
-
-  // 创建自定义拖动预览
-  const dragElement = event.target.cloneNode(true)
-  dragElement.style.opacity = '0.8'
-  dragElement.style.transform = 'rotate(3deg)'
-  dragElement.style.boxShadow = '0 10px 30px rgba(0,0,0,0.3)'
-  document.body.appendChild(dragElement)
-  event.dataTransfer.setDragImage(dragElement, 150, 100)
-
-  // 延迟移除克隆元素
-  setTimeout(() => {
-    document.body.removeChild(dragElement)
-  }, 0)
-}
-
-const handleDragEnd = () => {
-  isDragging.value = false
-  draggedIndex.value = null
-  dragOverIndex.value = null
-}
-
-const handleDragOver = (index, event) => {
-  event.preventDefault()
-  event.dataTransfer.dropEffect = 'move'
-  dragOverIndex.value = index
-}
-
-const handleDragLeave = () => {
-  // 延迟清除,避免闪烁
-  setTimeout(() => {
-    dragOverIndex.value = null
-  }, 100)
-}
-
-const handleDrop = (dropIndex, event) => {
-  event.preventDefault()
-  const dragIndex = draggedIndex.value
-
-  if (dragIndex === null || dragIndex === dropIndex) {
-    dragOverIndex.value = null
-    return
-  }
-
-  // 创建新的排序数组
-  const newOrder = [...taskStore.taskOrder]
-  const taskIds = tasks.value.map(t => t.id)
-
-  // 如果还没有排序,先初始化
-  if (newOrder.length === 0) {
-    newOrder.push(...taskIds)
-  }
-
-  // 移动任务
-  const [movedId] = newOrder.splice(dragIndex, 1)
-  newOrder.splice(dropIndex, 0, movedId)
-
-  // 更新排序
-  taskStore.updateTaskOrder(newOrder)
-
-  isDragging.value = false
-  draggedIndex.value = null
-  dragOverIndex.value = null
-}
 </script>
 
 <style scoped>
@@ -391,28 +307,6 @@ const handleDrop = (dropIndex, event) => {
 
 .task-card.task-running {
   border-color: var(--success-color);
-}
-
-.task-card.dragging {
-  opacity: 0.4;
-  transform: scale(0.95) rotate(2deg);
-  box-shadow: var(--shadow-overlay);
-  cursor: grabbing;
-}
-
-.task-card.drag-over {
-  border-color: var(--accent-color);
-  background: var(--accent-color-bg);
-  transform: scale(1.02);
-  box-shadow: var(--focus-ring), var(--shadow-xl);
-}
-
-.task-card[draggable="true"] {
-  cursor: grab;
-}
-
-.task-card[draggable="true"]:active {
-  cursor: grabbing;
 }
 
 .task-card-header {

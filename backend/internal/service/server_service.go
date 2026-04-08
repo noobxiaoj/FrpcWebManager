@@ -338,7 +338,9 @@ func (s *ServerService) updateServerTaskCountWithoutSave(server *model.Server) e
 	taskCount := len(tasks)
 	server.TaskCount = taskCount
 
-	// 统计运行中的任务数量
+	// 统计运行中的任务数量。
+	// 这里使用任务自身的状态字段，而不是日志或端口推断，
+	// 这样可以保证“服务器状态”完全由“任务状态 + frpc 进程状态”共同决定。
 	runningTaskCount := 0
 	for _, task := range tasks {
 		if task.Status == model.TaskStatusRunning {
@@ -346,19 +348,36 @@ func (s *ServerService) updateServerTaskCountWithoutSave(server *model.Server) e
 		}
 	}
 
+	// 预先缓存 frpc 进程运行状态，避免同一次状态计算中重复访问进程管理器。
+	// 后续规则严格按照产品定义执行：
+	// 1. taskCount == 0 -> 无任务
+	// 2. taskCount > 0 且至少一个任务在运行，且 frpc 在运行 -> 在线
+	// 3. taskCount > 0 且没有任务在运行，且 frpc 未运行 -> 离线
+	// 4. taskCount > 0 且“任务运行状态”与“frpc 运行状态”不一致 -> 故障
+	// 5. 其他未覆盖情况 -> 疑似异常
+	isFrpcRunning := s.frpcManager.IsServerRunning(addr, port)
+	hasRunningTask := runningTaskCount > 0
+
 	// 根据任务数量和进程状态更新服务器状态
 	if taskCount == 0 {
-		// 无任务
+		// 场景 1：该服务器完全没有任务。
 		server.Status = model.ServerStatusNoTask
-	} else if runningTaskCount > 0 && s.frpcManager.IsServerRunning(addr, port) {
-		// 有运行中的任务且进程正在运行
+	} else if hasRunningTask && isFrpcRunning {
+		// 场景 2：至少一个任务在运行，同时 frpc 进程也在运行。
 		server.Status = model.ServerStatusOnline
-	} else if runningTaskCount > 0 && !s.frpcManager.IsServerRunning(addr, port) {
-		// 有运行中的任务但进程未运行(异常状态)
+	} else if !hasRunningTask && !isFrpcRunning {
+		// 场景 3：有任务，但没有任何任务在运行，且 frpc 进程也未运行。
 		server.Status = model.ServerStatusOffline
+	} else if (hasRunningTask && !isFrpcRunning) || (!hasRunningTask && isFrpcRunning) {
+		// 场景 4：任务运行状态和 frpc 运行状态“打架”了。
+		// 例如：
+		// - 有任务显示运行中，但 frpc 实际没起来
+		// - 没有任务在运行，但 frpc 进程却还活着
+		server.Status = model.ServerStatusFault
 	} else {
-		// 有任务但都是停止状态
-		server.Status = model.ServerStatusNoTask
+		// 场景 5：理论上不应进入这里。
+		// 为了避免把未知场景误标成正常状态，统一标记为疑似异常，便于排查。
+		server.Status = model.ServerStatusSuspectedAbnormal
 	}
 
 	// 尝试获取 webServer 端口
@@ -373,8 +392,9 @@ func (s *ServerService) updateServerTaskCountWithoutSave(server *model.Server) e
 	uptime := s.frpcManager.GetServerUptime(addr, port)
 	if uptime != "" {
 		server.Uptime = uptime
-	} else if server.Status == model.ServerStatusOffline {
-		// 如果进程已停止,显示"未连接"
+	} else if server.Status == model.ServerStatusOffline || server.Status == model.ServerStatusFault {
+		// 离线或故障且拿不到运行时长时，统一显示“未连接”，
+		// 这样可以明确告诉用户当前没有拿到可用的 frpc 运行时间信息。
 		server.Uptime = "未连接"
 	}
 
@@ -508,4 +528,3 @@ func (s *ServerService) UpdateServerLock(id string, locked bool) error {
 	// 保存更新
 	return s.repo.UpdateServer(server)
 }
-

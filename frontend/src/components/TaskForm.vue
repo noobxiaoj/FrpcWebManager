@@ -108,7 +108,9 @@
                 :class="{
                   'status-online': selectedServer.status === 'online',
                   'status-offline': selectedServer.status === 'offline',
-                  'status-no-task': selectedServer.status === 'no_task'
+                  'status-no-task': selectedServer.status === 'no_task',
+                  'status-fault': selectedServer.status === 'fault',
+                  'status-suspected-abnormal': selectedServer.status === 'suspected_abnormal'
                 }"
               >
                 {{ getStatusText(selectedServer.status) }}
@@ -451,6 +453,10 @@ const getStatusText = (status) => {
       return '离线'
     case 'no_task':
       return '无任务'
+    case 'fault':
+      return '故障'
+    case 'suspected_abnormal':
+      return '疑似异常'
     default:
       return '未知'
   }
@@ -703,6 +709,16 @@ onMounted(() => {
 .status-no-task {
   background: var(--neutral-soft-bg);
   color: var(--text-secondary);
+}
+
+.status-fault {
+  background: var(--warning-color-bg);
+  color: var(--warning-color);
+}
+
+.status-suspected-abnormal {
+  background: var(--info-color-bg);
+  color: var(--info-color);
 }
 
 .form-group input[type="number"] {

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { taskApi } from '@/api'
 import { serverAPI } from '@/api/server'
 
@@ -11,56 +11,6 @@ export const useTaskStore = defineStore('task', () => {
   const error = ref(null)
   const servers = ref([])
   const showServerName = ref(false) // 是否显示服务器名称而非IP
-  const taskOrder = ref([]) // 任务排序ID列表
-
-  // 从本地存储加载排序
-  const loadTaskOrder = () => {
-    try {
-      const saved = localStorage.getItem('taskOrder')
-      if (saved) {
-        taskOrder.value = JSON.parse(saved)
-      }
-    } catch (err) {
-      console.error('加载任务排序失败:', err)
-    }
-  }
-
-  // 保存排序到本地存储
-  const saveTaskOrder = () => {
-    try {
-      localStorage.setItem('taskOrder', JSON.stringify(taskOrder.value))
-    } catch (err) {
-      console.error('保存任务排序失败:', err)
-    }
-  }
-
-  // 获取排序后的任务列表
-  const sortedTasks = computed(() => {
-    if (taskOrder.value.length === 0) {
-      return tasks.value
-    }
-    // 根据排序ID创建有序的任务列表
-    const ordered = []
-    const remaining = new Set(tasks.value.map(t => t.id))
-
-    // 先添加已排序的任务
-    for (const id of taskOrder.value) {
-      const task = tasks.value.find(t => t.id === id)
-      if (task) {
-        ordered.push(task)
-        remaining.delete(id)
-      }
-    }
-
-    // 添加新任务(不在排序中的)
-    for (const task of tasks.value) {
-      if (remaining.has(task.id)) {
-        ordered.push(task)
-      }
-    }
-
-    return ordered
-  })
 
   // 获取任务列表
   const fetchTasks = async () => {
@@ -69,7 +19,6 @@ export const useTaskStore = defineStore('task', () => {
     try {
       const response = await taskApi.list()
       tasks.value = response.data.tasks || []
-      loadTaskOrder()
     } catch (err) {
       error.value = err.message
       console.error('获取任务列表失败:', err)
@@ -103,9 +52,6 @@ export const useTaskStore = defineStore('task', () => {
       const response = await taskApi.create(taskData)
       const newTask = response.data.task
       tasks.value.push(newTask)
-      // 新任务添加到排序末尾
-      taskOrder.value.push(newTask.id)
-      saveTaskOrder()
       return newTask
     } catch (err) {
       error.value = err.message
@@ -144,9 +90,6 @@ export const useTaskStore = defineStore('task', () => {
     try {
       await taskApi.delete(id)
       tasks.value = tasks.value.filter(t => t.id !== id)
-      // 从排序中移除
-      taskOrder.value = taskOrder.value.filter(taskId => taskId !== id)
-      saveTaskOrder()
       if (currentTask.value?.id === id) {
         currentTask.value = null
       }
@@ -265,12 +208,6 @@ export const useTaskStore = defineStore('task', () => {
     showServerName.value = !showServerName.value
   }
 
-  // 更新任务排序
-  const updateTaskOrder = (newOrder) => {
-    taskOrder.value = newOrder
-    saveTaskOrder()
-  }
-
   return {
     // 状态
     tasks,
@@ -279,8 +216,6 @@ export const useTaskStore = defineStore('task', () => {
     error,
     servers,
     showServerName,
-    taskOrder,
-    sortedTasks,
     // 方法
     fetchTasks,
     fetchTask,
@@ -296,9 +231,6 @@ export const useTaskStore = defineStore('task', () => {
     getRunningTasks,
     fetchServers,
     getServerNameByAddress,
-    toggleDisplayMode,
-    updateTaskOrder,
-    loadTaskOrder,
-    saveTaskOrder
+    toggleDisplayMode
   }
 })

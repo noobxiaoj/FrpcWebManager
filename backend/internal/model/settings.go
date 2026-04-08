@@ -40,31 +40,27 @@ type NavigationBarSettings struct {
 
 // SystemSettings 系统设置模型
 type SystemSettings struct {
-	ShowServerPort    bool                 `json:"showServerPort"`    // 是否在服务器页面显示进程端口
-	RefreshInterval   int                  `json:"refreshInterval"`   // 日志和运行时间的刷新间隔（秒）
-	ShowRefreshTime   bool                 `json:"showRefreshTime"`   // 是否在服务器页面显示刷新时间
-	ShowServerName    bool                 `json:"showServerName"`    // 是否在任务中显示服务器名称而非IP
-	Language          string               `json:"language"`          // 当前界面语言，仅保存选择结果，暂不触发翻译逻辑
-	FrontendPort      int                  `json:"frontendPort"`      // 前端服务端口（默认 4500）
-	ConnectionIdentifier string            `json:"connectionIdentifier"` // 连接标识，预留给后续连接能力使用
-	EnableIPWhitelist bool                 `json:"enableIPWhitelist"` // 是否启用IP白名单
-	IPWhitelist       []string             `json:"ipWhitelist"`       // IP白名单列表
-	NavigationBar     NavigationBarSettings `json:"navigationBar"`     // 顶部导航栏按钮显示设置
-	PasswordAuth      PasswordAuthSettings `json:"passwordAuth"`      // 密码认证设置
+	RefreshInterval      int                   `json:"refreshInterval"`      // 日志刷新的刷新间隔（秒）
+	ShowServerName       bool                  `json:"showServerName"`       // 是否在任务中显示服务器名称而非IP
+	Language             string                `json:"language"`             // 当前界面语言，仅保存选择结果，暂不触发翻译逻辑
+	FrontendPort         int                   `json:"frontendPort"`         // 前端服务端口（默认 4500）
+	ConnectionIdentifier string                `json:"connectionIdentifier"` // 连接标识，预留给后续连接能力使用
+	EnableIPWhitelist    bool                  `json:"enableIPWhitelist"`    // 是否启用IP白名单
+	IPWhitelist          []string              `json:"ipWhitelist"`          // IP白名单列表
+	NavigationBar        NavigationBarSettings `json:"navigationBar"`        // 顶部导航栏按钮显示设置
+	PasswordAuth         PasswordAuthSettings  `json:"passwordAuth"`         // 密码认证设置
 }
 
 // DefaultSystemSettings 返回默认系统设置
 func DefaultSystemSettings() *SystemSettings {
 	return &SystemSettings{
-		ShowServerPort:    true,  // 默认显示端口
-		RefreshInterval:   10,    // 默认刷新间隔 10 秒
-		ShowRefreshTime:   true,  // 默认显示刷新时间
-		ShowServerName:    false, // 默认不显示服务器名称
-		Language:          LanguageZhCN, // 默认语言为简体中文
-		FrontendPort:      4500,  // 默认前端端口 4500
+		RefreshInterval:      10,    // 默认刷新间隔 10 秒
+		ShowServerName:       false, // 默认不显示服务器名称
+		Language:             LanguageZhCN, // 默认语言为简体中文
+		FrontendPort:         4500,  // 默认前端端口 4500
 		ConnectionIdentifier: "", // 默认连接标识为空，便于后续按需启用
-		EnableIPWhitelist: false, // 默认不启用IP白名单
-		IPWhitelist:       []string{}, // 默认白名单为空
+		EnableIPWhitelist:    false, // 默认不启用IP白名单
+		IPWhitelist:          []string{}, // 默认白名单为空
 		NavigationBar: NavigationBarSettings{
 			ShowAboutButton:    true,
 			ShowLockButton:     true,
@@ -90,15 +86,13 @@ func (s *SystemSettings) Clone() *SystemSettings {
 	copy(ipWhitelist, s.IPWhitelist)
 
 	return &SystemSettings{
-		ShowServerPort:    s.ShowServerPort,
-		RefreshInterval:   s.RefreshInterval,
-		ShowRefreshTime:   s.ShowRefreshTime,
-		ShowServerName:    s.ShowServerName,
-		Language:          s.Language,
-		FrontendPort:      s.FrontendPort,
+		RefreshInterval:      s.RefreshInterval,
+		ShowServerName:       s.ShowServerName,
+		Language:             s.Language,
+		FrontendPort:         s.FrontendPort,
 		ConnectionIdentifier: s.ConnectionIdentifier,
-		EnableIPWhitelist: s.EnableIPWhitelist,
-		IPWhitelist:       ipWhitelist,
+		EnableIPWhitelist:    s.EnableIPWhitelist,
+		IPWhitelist:          ipWhitelist,
 		NavigationBar: NavigationBarSettings{
 			ShowAboutButton:    s.NavigationBar.ShowAboutButton,
 			ShowLockButton:     s.NavigationBar.ShowLockButton,

@@ -36,24 +36,10 @@
         section-id="server-display-settings-content"
       >
         <SettingItem
-          id="showServerPort"
-          :label="t('settings.fields.showServerPort')"
-        >
-          <Switch id="showServerPort" v-model="settings.showServerPort" :disabled="saving" />
-        </SettingItem>
-
-        <SettingItem
           id="showServerName"
           :label="t('settings.fields.showServerName')"
         >
           <Switch id="showServerName" v-model="settings.showServerName" :disabled="saving" />
-        </SettingItem>
-
-        <SettingItem
-          id="showRefreshTime"
-          :label="t('settings.fields.showRefreshTime')"
-        >
-          <Switch id="showRefreshTime" v-model="settings.showRefreshTime" :disabled="saving" />
         </SettingItem>
       </SettingSection>
 
@@ -290,9 +276,7 @@ const taskStore = useTaskStore()
 const { t } = useI18n()
 
 const settings = ref({
-  showServerPort: true,
   refreshInterval: 10,
-  showRefreshTime: true,
   showServerName: false,
   language: 'zh-CN',
   frontendPort: 4500,
@@ -332,12 +316,16 @@ const loadSettings = async () => {
     }
     const data = await response.json()
     if (data.data) {
-      // 统一补齐前端依赖的新字段，确保旧版 settings.json 或旧接口响应
-      // 在未包含这些字段时，页面依然能稳定渲染和保存。
+      // 这里使用白名单方式重建设置对象。
+      // 这样即使后端返回了旧版废弃字段，也不会继续被前端保留并再次提交。
       const normalizedSettings = {
-        ...JSON.parse(JSON.stringify(data.data)),
+        refreshInterval: data.data.refreshInterval ?? 10,
+        showServerName: data.data.showServerName ?? false,
         language: data.data.language || 'zh-CN',
+        frontendPort: data.data.frontendPort ?? 4500,
         connectionIdentifier: data.data.connectionIdentifier || '',
+        enableIPWhitelist: data.data.enableIPWhitelist ?? false,
+        ipWhitelist: Array.isArray(data.data.ipWhitelist) ? data.data.ipWhitelist : [],
         navigationBar: {
           showAboutButton: data.data.navigationBar?.showAboutButton ?? true,
           showLockButton: data.data.navigationBar?.showLockButton ?? true,
@@ -407,13 +395,25 @@ const saveSettings = async () => {
   saveMessage.value = ''
 
   try {
+    // 使用白名单字段提交，确保旧版缓存/内存中的废弃字段不会再次写回后端。
+    const payload = {
+      refreshInterval: settings.value.refreshInterval,
+      showServerName: settings.value.showServerName,
+      language: settings.value.language,
+      frontendPort: settings.value.frontendPort,
+      connectionIdentifier: settings.value.connectionIdentifier,
+      enableIPWhitelist: settings.value.enableIPWhitelist,
+      ipWhitelist: settings.value.ipWhitelist,
+      navigationBar: settings.value.navigationBar
+    }
+
     const response = await fetch(`${getApiBaseUrl()}/api/settings`, {
       method: 'PUT',
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(settings.value)
+      body: JSON.stringify(payload)
     })
 
     if (!response.ok) {

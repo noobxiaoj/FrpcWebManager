@@ -68,17 +68,15 @@ func (h *SettingsHandler) GetSettings(c *gin.Context) {
 	}
 
 	SuccessResponse(c, gin.H{
-		"showServerPort":    settings.ShowServerPort,
-		"refreshInterval":   settings.RefreshInterval,
-		"showRefreshTime":   settings.ShowRefreshTime,
-		"showServerName":    settings.ShowServerName,
-		"language":          settings.Language,
-		"frontendPort":      settings.FrontendPort,
+		"refreshInterval":      settings.RefreshInterval,
+		"showServerName":       settings.ShowServerName,
+		"language":             settings.Language,
+		"frontendPort":         settings.FrontendPort,
 		"connectionIdentifier": settings.ConnectionIdentifier,
-		"enableIPWhitelist": settings.EnableIPWhitelist,
-		"ipWhitelist":       settings.IPWhitelist,
-		"navigationBar":     settings.NavigationBar,
-		"passwordAuth":      settings.ToPasswordAuthInfo(),
+		"enableIPWhitelist":    settings.EnableIPWhitelist,
+		"ipWhitelist":          settings.IPWhitelist,
+		"navigationBar":        settings.NavigationBar,
+		"passwordAuth":         settings.ToPasswordAuthInfo(),
 	})
 }
 
@@ -114,31 +112,27 @@ func (h *SettingsHandler) UpdateSettings(c *gin.Context) {
 
 	// 广播设置更新事件到所有连接的客户端
 	SSEManagerInstance.BroadcastSettingsUpdated(gin.H{
-		"showServerPort":    savedSettings.ShowServerPort,
-		"refreshInterval":   savedSettings.RefreshInterval,
-		"showRefreshTime":   savedSettings.ShowRefreshTime,
-		"showServerName":    savedSettings.ShowServerName,
-		"language":          savedSettings.Language,
-		"frontendPort":      savedSettings.FrontendPort,
+		"refreshInterval":      savedSettings.RefreshInterval,
+		"showServerName":       savedSettings.ShowServerName,
+		"language":             savedSettings.Language,
+		"frontendPort":         savedSettings.FrontendPort,
 		"connectionIdentifier": savedSettings.ConnectionIdentifier,
-		"enableIPWhitelist": savedSettings.EnableIPWhitelist,
-		"ipWhitelist":       savedSettings.IPWhitelist,
-		"navigationBar":     savedSettings.NavigationBar,
+		"enableIPWhitelist":    savedSettings.EnableIPWhitelist,
+		"ipWhitelist":          savedSettings.IPWhitelist,
+		"navigationBar":        savedSettings.NavigationBar,
 	})
 
 	SuccessResponse(c, gin.H{
 		"message": "设置已更新",
 		"settings": gin.H{
-			"showServerPort":    savedSettings.ShowServerPort,
-			"refreshInterval":   savedSettings.RefreshInterval,
-			"showRefreshTime":   savedSettings.ShowRefreshTime,
-			"showServerName":    savedSettings.ShowServerName,
-			"language":          savedSettings.Language,
-			"frontendPort":      savedSettings.FrontendPort,
+			"refreshInterval":      savedSettings.RefreshInterval,
+			"showServerName":       savedSettings.ShowServerName,
+			"language":             savedSettings.Language,
+			"frontendPort":         savedSettings.FrontendPort,
 			"connectionIdentifier": savedSettings.ConnectionIdentifier,
-			"enableIPWhitelist": savedSettings.EnableIPWhitelist,
-			"ipWhitelist":       savedSettings.IPWhitelist,
-			"navigationBar":     savedSettings.NavigationBar,
+			"enableIPWhitelist":    savedSettings.EnableIPWhitelist,
+			"ipWhitelist":          savedSettings.IPWhitelist,
+			"navigationBar":        savedSettings.NavigationBar,
 		},
 	})
 }

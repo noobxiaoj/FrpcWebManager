@@ -155,60 +155,6 @@ export const serverAPI = {
   },
 
   /**
-   * 更新服务器排序
-   */
-  async updateServerOrder(serverOrder) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/servers/order`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ order: serverOrder })
-      })
-      const result = await response.json()
-      if (result.code === 1004) {
-        window.dispatchEvent(new CustomEvent('auth-expired'))
-      }
-      if (result.code === 0) {
-        return true
-      }
-      throw new Error(result.message || '更新服务器排序失败')
-    } catch (error) {
-      console.error('更新服务器排序失败:', error)
-      throw error
-    }
-  },
-
-  /**
-   * 更新服务器锁定状态
-   */
-  async updateServerLock(id, locked) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/servers/${id}/lock`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ locked })
-      })
-      const result = await response.json()
-      if (result.code === 1004) {
-        window.dispatchEvent(new CustomEvent('auth-expired'))
-      }
-      if (result.code === 0) {
-        return true
-      }
-      throw new Error(result.message || '更新服务器锁定状态失败')
-    } catch (error) {
-      console.error('更新服务器锁定状态失败:', error)
-      throw error
-    }
-  },
-
-  /**
    * 添加日志
    */
   async addLog(id, log) {
