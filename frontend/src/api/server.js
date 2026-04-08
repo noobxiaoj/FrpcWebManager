@@ -115,6 +115,29 @@ export const serverAPI = {
   },
 
   /**
+   * 重启服务器进程组
+   */
+  async restartServer(id) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/servers/${id}/restart`, {
+        method: 'POST',
+        credentials: 'include'
+      })
+      const result = await response.json()
+      if (result.code === 1004) {
+        window.dispatchEvent(new CustomEvent('auth-expired'))
+      }
+      if (result.code === 0) {
+        return result.data
+      }
+      throw new Error(result.message || '重启服务器失败')
+    } catch (error) {
+      console.error('重启服务器失败:', error)
+      throw error
+    }
+  },
+
+  /**
    * 删除服务器
    * @param {string} id - 服务器ID
    * @param {boolean} force - 是否强制删除（同时删除关联任务）

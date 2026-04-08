@@ -62,133 +62,13 @@
       <p>{{ t('home.emptyDescription') }}</p>
     </div>
 
-    <div v-if="showAddServerModal" class="modal-overlay" @click="closeAddServerModal">
-      <div class="modal-card" @click.stop>
-        <div class="modal-header">
-          <h3 class="modal-title">{{ t('home.modalTitle') }}</h3>
-          <AppButton class="modal-close" preserve-style @click="closeAddServerModal" :title="t('common.close')">
-            <template #icon>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </template>
-          </AppButton>
-        </div>
-
-        <div class="modal-body">
-          <form @submit.prevent="submitAddServer" class="server-form">
-            <div class="form-group">
-              <label for="serverName" class="form-label">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-                {{ t('home.serverName') }}
-              </label>
-              <input
-                id="serverName"
-                v-model="newServer.name"
-                type="text"
-                class="form-input"
-                :class="{ 'input-error': addServerFormErrors.name }"
-                :placeholder="t('home.placeholders.serverName')"
-                @input="addServerFormErrors.name = ''"
-              />
-              <span v-if="addServerFormErrors.name" class="form-error">
-                {{ addServerFormErrors.name }}
-              </span>
-            </div>
-
-            <div class="form-group">
-              <label for="serverAddress" class="form-label">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
-                  <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
-                  <line x1="6" y1="6" x2="6.01" y2="6"></line>
-                  <line x1="6" y1="18" x2="6.01" y2="18"></line>
-                </svg>
-                {{ t('home.serverAddress') }}
-              </label>
-              <input
-                id="serverAddress"
-                v-model="newServer.address"
-                type="text"
-                class="form-input"
-                :class="{ 'input-error': addServerFormErrors.address }"
-                :placeholder="t('home.placeholders.serverAddress')"
-                @input="addServerFormErrors.address = ''"
-              />
-              <span v-if="addServerFormErrors.address" class="form-error">
-                {{ addServerFormErrors.address }}
-              </span>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label for="serverPort" class="form-label">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                  </svg>
-                  {{ t('home.port') }}
-                </label>
-                <input
-                  id="serverPort"
-                  v-model="newServer.port"
-                  type="text"
-                  class="form-input"
-                  :class="{ 'input-error': addServerFormErrors.port }"
-                  :placeholder="t('home.placeholders.port')"
-                  @input="addServerFormErrors.port = ''"
-                />
-                <span v-if="addServerFormErrors.port" class="form-error">
-                  {{ addServerFormErrors.port }}
-                </span>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="serverToken" class="form-label">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-                {{ t('home.tokenOptional') }}
-              </label>
-              <input
-                id="serverToken"
-                v-model="newServer.token"
-                type="password"
-                class="form-input"
-                :class="{ 'input-error': addServerFormErrors.token }"
-                :placeholder="t('home.placeholders.token')"
-                @input="addServerFormErrors.token = ''"
-              />
-              <span v-if="addServerFormErrors.token" class="form-error">
-                {{ addServerFormErrors.token }}
-              </span>
-            </div>
-
-            <div class="form-actions">
-              <AppButton variant="secondary" type="button" @click="closeAddServerModal">
-                {{ t('common.cancel') }}
-              </AppButton>
-              <AppButton variant="primary" type="submit">
-                <template #icon>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                  </svg>
-                </template>
-                {{ t('home.submit') }}
-              </AppButton>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
+    <ServerFormModal
+      :visible="showAddServerModal"
+      mode="create"
+      :submitting="submittingServer"
+      @close="closeAddServerModal"
+      @submit="submitAddServer"
+    />
   </div>
 </template>
 
@@ -199,6 +79,7 @@ import { serverAPI } from '@/api/server'
 import AppButton from '@/components/AppButton.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import ServerInfo from '@/components/ServerInfo.vue'
+import ServerFormModal from '@/components/ServerFormModal.vue'
 import { useI18n } from '@/utils/i18n'
 
 const router = useRouter()
@@ -209,13 +90,7 @@ const isInitialized = ref(false)
 const servers = ref([])
 
 const showAddServerModal = ref(false)
-const newServer = ref({
-  name: '',
-  address: '',
-  port: '',
-  token: ''
-})
-const addServerFormErrors = ref({})
+const submittingServer = ref(false)
 
 /**
  * 拉取首页卡片所需的服务器与任务数据。
@@ -243,69 +118,29 @@ const viewServer = (id) => {
 
 const openAddServerModal = () => {
   showAddServerModal.value = true
-  newServer.value = {
-    name: '',
-    address: '',
-    port: '',
-    token: ''
-  }
-  addServerFormErrors.value = {}
 }
 
 const closeAddServerModal = () => {
   showAddServerModal.value = false
-  newServer.value = {
-    name: '',
-    address: '',
-    port: '',
-    token: ''
-  }
-  addServerFormErrors.value = {}
 }
 
 /**
- * 校验服务器创建表单，避免无效参数直接发往后端。
- * @returns {boolean} 是否通过校验
+ * 提交新建服务器表单。
+ * 弹窗内部已经完成本地校验，这里只负责调用接口并刷新首页列表。
+ * @param {{name: string, address: string, port: string, token: string}} payload - 标准化后的服务器表单数据
+ * @returns {Promise<void>} 无返回值
  */
-const validateServerForm = () => {
-  const errors = {}
-
-  if (!newServer.value.name.trim()) {
-    errors.name = t('home.validation.nameRequired')
-  }
-
-  if (!newServer.value.address.trim()) {
-    errors.address = t('home.validation.addressRequired')
-  } else if (!/^[\w\.-]+$/.test(newServer.value.address)) {
-    errors.address = t('home.validation.addressInvalid')
-  }
-
-  if (!newServer.value.port.trim()) {
-    errors.port = t('home.validation.portRequired')
-  } else if (!/^\d{1,5}$/.test(newServer.value.port) || parseInt(newServer.value.port) > 65535) {
-    errors.port = t('home.validation.portInvalid')
-  }
-
-  addServerFormErrors.value = errors
-  return Object.keys(errors).length === 0
-}
-
-const submitAddServer = async () => {
-  if (!validateServerForm()) return
-
+const submitAddServer = async (payload) => {
   try {
-    await serverAPI.createServer({
-      name: newServer.value.name,
-      address: newServer.value.address,
-      port: newServer.value.port,
-      token: newServer.value.token
-    })
-
+    submittingServer.value = true
+    await serverAPI.createServer(payload)
     closeAddServerModal()
     await loadServers()
   } catch (error) {
     console.error('创建服务器失败:', error)
     alert(`${t('home.messages.createFailed')}: ${error.message}`)
+  } finally {
+    submittingServer.value = false
   }
 }
 
@@ -426,127 +261,6 @@ onMounted(async () => {
   }
 }
 
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.25rem;
-  z-index: 1000;
-}
-
-.modal-card {
-  width: min(100%, 560px);
-  max-height: calc(100vh - 2.5rem);
-  overflow: auto;
-  background: var(--card-bg);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-overlay);
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.modal-title {
-  margin: 0;
-  font-size: 1.15rem;
-  color: var(--text-primary);
-}
-
-.modal-close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-}
-
-.modal-close:hover {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-}
-
-.modal-body {
-  padding: 1.5rem;
-}
-
-.server-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-
-.form-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.form-label svg {
-  width: 1rem;
-  height: 1rem;
-  color: var(--accent-color);
-}
-
-.form-input {
-  width: 100%;
-  padding: 0.8rem 0.9rem;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  font-size: 0.95rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: var(--accent-color);
-  box-shadow: var(--focus-ring);
-}
-
-.input-error {
-  border-color: var(--danger-color);
-}
-
-.form-error {
-  font-size: 0.85rem;
-  color: var(--danger-color);
-}
-
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-}
-
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -560,10 +274,6 @@ onMounted(async () => {
 
   .server-grid {
     grid-template-columns: 1fr;
-  }
-
-  .form-actions {
-    flex-direction: column;
   }
 }
 </style>

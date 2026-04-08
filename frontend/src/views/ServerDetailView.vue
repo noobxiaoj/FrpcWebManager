@@ -38,17 +38,32 @@
 
           <div class="header-actions">
             <AppButton
-              class="btn-action refresh"
+              class="btn-action restart"
               preserve-style
-              @click="refreshServerData"
+              @click="restartServerProcess"
               :disabled="actionLoading"
-              :title="t('serverDetail.refreshTitle')"
+              :title="t('serverDetail.restartTitle')"
             >
               <template #icon>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="23 4 23 10 17 10"></polyline>
                   <polyline points="1 20 1 14 7 14"></polyline>
                   <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+              </template>
+            </AppButton>
+
+            <AppButton
+              class="btn-action edit"
+              preserve-style
+              @click="openEditServerModal"
+              :disabled="actionLoading"
+              :title="t('serverDetail.editTitle')"
+            >
+              <template #icon>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 20h9"></path>
+                  <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z"></path>
                 </svg>
               </template>
             </AppButton>
@@ -139,18 +154,6 @@
               </div>
             </div>
 
-            <div class="info-item">
-              <div class="info-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 20h9"></path>
-                  <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z"></path>
-                </svg>
-              </div>
-              <div class="info-content">
-                <span class="info-label">{{ t('serverDetail.lastRefresh') }}</span>
-                <span class="info-value">{{ lastRefreshText }}</span>
-              </div>
-            </div>
           </div>
 
           <div class="section-block">
@@ -238,6 +241,24 @@
                 </div>
 
                 <div class="section-actions">
+                  <span class="section-meta-last-refresh">{{ lastRefreshText }}</span>
+                  <AppButton
+                    class="btn-action refresh"
+                    preserve-style
+                    type="button"
+                    :disabled="actionLoading"
+                    :title="t('serverDetail.refreshTitle')"
+                    :aria-label="t('serverDetail.refreshTitle')"
+                    @click="refreshServerData"
+                  >
+                    <template #icon>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <polyline points="1 20 1 14 7 14"></polyline>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                      </svg>
+                    </template>
+                  </AppButton>
                   <AppButton
                     class="btn-action delete log-clear-action"
                     preserve-style
@@ -293,6 +314,15 @@
         </div>
       </section>
     </div>
+
+    <ServerFormModal
+      :visible="showEditServerModal"
+      mode="edit"
+      :initial-server="editableServer"
+      :submitting="editSubmitting"
+      @close="closeEditServerModal"
+      @submit="submitEditServer"
+    />
 
     <div v-if="showDeleteConfirmModal" class="modal-overlay" @click="closeDeleteConfirmModal">
       <div class="modal-card" @click.stop>
@@ -361,6 +391,7 @@ import { useTaskStore } from '@/stores/task'
 import { getApiBaseUrl } from '@/utils/api'
 import AppButton from '@/components/AppButton.vue'
 import LogFilterButton from '@/components/LogFilterButton.vue'
+import ServerFormModal from '@/components/ServerFormModal.vue'
 import { useI18n } from '@/utils/i18n'
 
 const router = useRouter()
@@ -386,6 +417,8 @@ const taskChipResizeObserver = ref(null)
 const taskSectionExpanded = ref(true)
 const logSectionExpanded = ref(true)
 const selectedLogFilters = ref([...AVAILABLE_LOG_FILTERS])
+const showEditServerModal = ref(false)
+const editSubmitting = ref(false)
 const showDeleteConfirmModal = ref(false)
 const serverTasks = ref([])
 const settings = ref({
@@ -592,24 +625,49 @@ const logEmptyText = computed(() => {
  * @returns {number} 返回当前筛选后的日志数量。
  */
 const filteredLogCount = computed(() => displayedLogs.value.length)
+const editableServer = computed(() => {
+  if (!server.value) {
+    return {}
+  }
+
+  const { host, port } = parseServerAddress(server.value.address)
+
+  return {
+    name: server.value.name,
+    address: host,
+    port: port ?? '',
+    token: server.value.token || ''
+  }
+})
 
 const lastRefreshText = computed(() => {
-  if (!lastRefreshTime.value) return t('serverDetail.notRefreshed')
+  if (!lastRefreshTime.value) {
+    return locale.value === 'en-US' ? '(not refreshed)' : '(未刷新)'
+  }
 
   const diffMs = currentTime.value - new Date(lastRefreshTime.value).getTime()
   const diffSeconds = Math.max(0, Math.floor(diffMs / 1000))
 
-  if (diffSeconds < 5) return t('serverDetail.justNow')
-  if (diffSeconds < 60) return t('serverDetail.secondsAgo', { count: diffSeconds })
+  if (diffSeconds < 5) {
+    return locale.value === 'en-US' ? '(just now)' : '(刚刚)'
+  }
+
+  if (diffSeconds < 60) {
+    return locale.value === 'en-US' ? `(${diffSeconds}s ago)` : `(${diffSeconds}s前)`
+  }
 
   const diffMinutes = Math.floor(diffSeconds / 60)
-  if (diffMinutes < 60) return t('serverDetail.minutesAgo', { count: diffMinutes })
+  if (diffMinutes < 60) {
+    return locale.value === 'en-US' ? `(${diffMinutes}m ago)` : `(${diffMinutes}m前)`
+  }
 
   const diffHours = Math.floor(diffMinutes / 60)
-  if (diffHours < 24) return t('serverDetail.hoursAgo', { count: diffHours })
+  if (diffHours < 24) {
+    return locale.value === 'en-US' ? `(${diffHours}h ago)` : `(${diffHours}h前)`
+  }
 
   const diffDays = Math.floor(diffHours / 24)
-  return t('serverDetail.daysAgo', { count: diffDays })
+  return locale.value === 'en-US' ? `(${diffDays}d ago)` : `(${diffDays}d前)`
 })
 
 const getStatusText = (status) => {
@@ -851,6 +909,25 @@ const goBack = () => {
   router.push('/')
 }
 
+/**
+ * 打开编辑服务器弹窗。
+ * 当前详情页已经持有完整服务器信息，因此直接复用现有数据作为表单初始值。
+ * @returns {void} 无返回值
+ */
+const openEditServerModal = () => {
+  showEditServerModal.value = true
+}
+
+/**
+ * 关闭编辑服务器弹窗。
+ * @returns {void} 无返回值
+ */
+const closeEditServerModal = () => {
+  if (!editSubmitting.value) {
+    showEditServerModal.value = false
+  }
+}
+
 const viewTask = (id) => {
   router.push(`/tasks/${id}`)
 }
@@ -866,6 +943,49 @@ const clearLogs = async () => {
   } catch (error) {
     console.error('清空日志失败:', error)
     alert(`${t('serverDetail.messages.clearLogsFailed')}: ${error.message}`)
+  } finally {
+    actionLoading.value = false
+  }
+}
+
+/**
+ * 提交服务器编辑表单。
+ * 更新成功后会重新拉取详情页数据，保证头部信息、卡片内容和关联展示全部同步。
+ * @param {{name: string, address: string, port: string, token: string}} payload - 编辑后的服务器信息
+ * @returns {Promise<void>} 无返回值
+ */
+const submitEditServer = async (payload) => {
+  if (!server.value) return
+
+  try {
+    editSubmitting.value = true
+    await serverAPI.updateServer(server.value.id, payload)
+    showEditServerModal.value = false
+    await refreshServerData()
+  } catch (error) {
+    console.error('更新服务器失败:', error)
+    alert(`${t('serverDetail.messages.updateFailed')}: ${error.message}`)
+  } finally {
+    editSubmitting.value = false
+  }
+}
+
+/**
+ * 重启当前服务器对应的 frpc 进程组。
+ * 接口会根据该服务器已有的关联任务进行停机再启动，
+ * 成功后刷新详情、任务和日志，保证界面状态与实际运行状态一致。
+ * @returns {Promise<void>} 无返回值
+ */
+const restartServerProcess = async () => {
+  if (!server.value) return
+
+  try {
+    actionLoading.value = true
+    await serverAPI.restartServer(server.value.id)
+    await refreshServerData()
+  } catch (error) {
+    console.error('重启服务器失败:', error)
+    alert(`${t('serverDetail.messages.restartFailed')}: ${error.message}`)
   } finally {
     actionLoading.value = false
   }
@@ -1206,6 +1326,18 @@ onUnmounted(() => {
   color: var(--accent-color);
 }
 
+.btn-action.edit {
+  border-color: var(--edit-color);
+  background: var(--edit-color-bg);
+  color: var(--edit-color);
+}
+
+.btn-action.restart {
+  border-color: var(--info-color);
+  background: var(--info-color-bg);
+  color: var(--info-color);
+}
+
 .btn-action.clear,
 .btn-action.delete {
   border-color: var(--danger-color);
@@ -1321,6 +1453,12 @@ onUnmounted(() => {
   color: var(--text-primary);
   font-weight: 700;
   line-height: 1;
+}
+
+.section-meta-last-refresh {
+  color: var(--text-secondary);
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .section-subheading {
@@ -1742,6 +1880,10 @@ onUnmounted(() => {
   .section-subheading {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .section-actions {
+    justify-content: flex-end;
   }
 
   .log-line {

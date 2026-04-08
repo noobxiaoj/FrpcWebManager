@@ -130,6 +130,52 @@ func (s *ServerService) UpdateServer(id string, req *model.UpdateServerRequest) 
 	return server, nil
 }
 
+// RestartServer 重启服务器对应的 frpc 进程组
+func (s *ServerService) RestartServer(id string) error {
+	// 获取服务器信息
+	server, err := s.repo.GetServer(id)
+	if err != nil {
+		return err
+	}
+
+	// 解析服务器地址
+	addr, port, err := parseServerAddress(server.Address)
+	if err != nil {
+		return err
+	}
+
+	// 获取该服务器下的所有任务
+	tasks, err := s.taskRepo.GetByServer(addr, port)
+	if err != nil {
+		return fmt.Errorf("获取服务器任务失败: %w", err)
+	}
+
+	// 没有关联任务时无法启动 frpc 进程组
+	if len(tasks) == 0 {
+		return fmt.Errorf("服务器没有关联任务，无法重启")
+	}
+
+	// 获取认证 token
+	authToken := ""
+	if tasks[0].AuthToken != "" {
+		authToken = tasks[0].AuthToken
+	}
+
+	// 如果进程当前正在运行，先停止再启动，保证符合“重启”的语义
+	if s.frpcManager.IsServerRunning(addr, port) {
+		if err := s.frpcManager.StopServer(addr, port); err != nil {
+			return fmt.Errorf("停止 frpc 进程失败: %w", err)
+		}
+	}
+
+	// 使用现有关联任务重新启动进程组
+	if err := s.frpcManager.StartServer(addr, port, authToken, tasks); err != nil {
+		return fmt.Errorf("启动 frpc 进程失败: %w", err)
+	}
+
+	return nil
+}
+
 // DeleteServer 删除服务器
 func (s *ServerService) DeleteServer(id string, forceDelete bool) ([]string, error) {
 	// 获取服务器信息

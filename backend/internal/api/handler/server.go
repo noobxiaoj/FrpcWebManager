@@ -114,6 +114,28 @@ func (h *ServerHandler) UpdateServer(c *gin.Context) {
 	SuccessResponse(c, server)
 }
 
+// RestartServer 重启服务器进程
+// @Summary 重启服务器进程
+// @Description 按服务器当前关联任务重新启动 frpc 进程组
+// @Tags 服务器管理
+// @Accept json
+// @Produce json
+// @Param id path string true "服务器ID"
+// @Success 200 {object} Response
+// @Router /api/servers/{id}/restart [post]
+func (h *ServerHandler) RestartServer(c *gin.Context) {
+	id := c.Param("id")
+
+	if err := h.service.RestartServer(id); err != nil {
+		ErrorResponse(c, CodeInternalError, "重启服务器失败", err)
+		return
+	}
+
+	SuccessResponse(c, gin.H{
+		"message": "服务器已重启",
+	})
+}
+
 // DeleteServer 删除服务器
 // @Summary 删除服务器
 // @Description 删除指定的服务器，如果有任务需要强制删除

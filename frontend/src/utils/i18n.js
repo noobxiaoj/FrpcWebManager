@@ -144,6 +144,29 @@ const messages = {
         createFailed: '创建服务器失败'
       }
     },
+    serverForm: {
+      createTitle: '新建服务器',
+      editTitle: '编辑服务器',
+      serverName: '服务器名称',
+      serverAddress: '服务器地址',
+      port: '端口',
+      tokenOptional: '密钥（可选）',
+      submitCreate: '添加服务器',
+      submitEdit: '保存修改',
+      placeholders: {
+        serverName: '例如：生产环境服务器',
+        serverAddress: '例如：192.168.1.100 或 example.com',
+        port: '7000',
+        token: '请输入服务器密钥（可选）'
+      },
+      validation: {
+        nameRequired: '请输入服务器名称',
+        addressRequired: '请输入服务器地址',
+        addressInvalid: '请输入有效的服务器地址',
+        portRequired: '请输入端口号',
+        portInvalid: '请输入有效的端口号 (1-65535)'
+      }
+    },
     taskList: {
       title: '任务列表',
       refreshTitle: '刷新列表',
@@ -260,6 +283,8 @@ const messages = {
     serverDetail: {
       backTitle: '返回列表',
       refreshTitle: '刷新详情与日志',
+      editTitle: '编辑服务器',
+      restartTitle: '重启服务器',
       deleteTitle: '删除服务器',
       address: '服务器地址',
       processPort: '进程端口',
@@ -297,6 +322,8 @@ const messages = {
         loadLogsFailed: '加载日志失败',
         clearLogsFailed: '清空日志失败',
         checkTasksFailed: '检查服务器任务失败',
+        updateFailed: '更新服务器失败',
+        restartFailed: '重启服务器失败',
         deleteFailed: '删除服务器失败',
         initFailed: '加载服务器详情失败'
       },
@@ -525,6 +552,29 @@ const messages = {
         createFailed: 'Failed to create server'
       }
     },
+    serverForm: {
+      createTitle: 'Create Server',
+      editTitle: 'Edit Server',
+      serverName: 'Server name',
+      serverAddress: 'Server address',
+      port: 'Port',
+      tokenOptional: 'Token (optional)',
+      submitCreate: 'Add server',
+      submitEdit: 'Save changes',
+      placeholders: {
+        serverName: 'Example: Production server',
+        serverAddress: 'Example: 192.168.1.100 or example.com',
+        port: '7000',
+        token: 'Enter the server token (optional)'
+      },
+      validation: {
+        nameRequired: 'Please enter a server name',
+        addressRequired: 'Please enter a server address',
+        addressInvalid: 'Please enter a valid server address',
+        portRequired: 'Please enter a port',
+        portInvalid: 'Please enter a valid port (1-65535)'
+      }
+    },
     taskList: {
       title: 'Tasks',
       refreshTitle: 'Refresh list',
@@ -641,6 +691,8 @@ const messages = {
     serverDetail: {
       backTitle: 'Back to list',
       refreshTitle: 'Refresh details and logs',
+      editTitle: 'Edit server',
+      restartTitle: 'Restart server',
       deleteTitle: 'Delete server',
       address: 'Server address',
       processPort: 'Process port',
@@ -678,6 +730,8 @@ const messages = {
         loadLogsFailed: 'Failed to load logs',
         clearLogsFailed: 'Failed to clear logs',
         checkTasksFailed: 'Failed to check related tasks',
+        updateFailed: 'Failed to update server',
+        restartFailed: 'Failed to restart server',
         deleteFailed: 'Failed to delete server',
         initFailed: 'Failed to load server details'
       },
