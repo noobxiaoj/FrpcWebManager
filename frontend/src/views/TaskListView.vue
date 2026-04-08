@@ -1,13 +1,13 @@
 <template>
   <div class="task-list">
-    <PageHeader title="任务列表">
+    <PageHeader :title="t('taskList.title')">
       <template #actions>
         <AppButton
           class="btn-refresh page-header-action-button page-header-action-button--icon"
           preserve-style
           @click="handleRefresh"
           :disabled="taskStore.loading"
-          title="刷新列表"
+          :title="t('taskList.refreshTitle')"
         >
           <svg
             viewBox="0 0 24 24"
@@ -25,7 +25,7 @@
           class="btn-primary page-header-action-button page-header-action-button--icon"
           preserve-style
           @click="goToCreate"
-          title="创建任务"
+          :title="t('taskList.createTitle')"
         >
           <template #icon>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -45,7 +45,7 @@
 
     <!-- 加载状态 -->
     <div v-if="taskStore.loading && tasks.length === 0" class="loading">
-      加载中...
+      {{ t('common.loading') }}
     </div>
 
     <!-- 任务列表 -->
@@ -94,8 +94,8 @@
         <line x1="12" y1="8" x2="12" y2="12"></line>
         <line x1="12" y1="16" x2="12.01" y2="16"></line>
       </svg>
-      <h2>暂无任务</h2>
-      <p>点击上方按钮创建第一个 FRPC 任务</p>
+      <h2>{{ t('taskList.emptyTitle') }}</h2>
+      <p>{{ t('taskList.emptyDescription') }}</p>
     </div>
   </div>
 </template>
@@ -108,10 +108,12 @@ import AppButton from '@/components/AppButton.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import TaskStatusIndicator from '@/components/TaskStatusIndicator.vue'
 import { getApiBaseUrl } from '@/utils/api'
+import { useI18n } from '@/utils/i18n'
 
 const router = useRouter()
 const route = useRoute()
 const taskStore = useTaskStore()
+const { t } = useI18n()
 
 const tasks = computed(() => taskStore.tasks)
 

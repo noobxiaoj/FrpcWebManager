@@ -1,40 +1,40 @@
 <template>
   <div class="about">
-    <PageHeader title="关于项目" />
+    <PageHeader :title="t('about.title')" />
 
     <!-- 错误提示 -->
     <div v-if="loadError" class="error-message">
-      <h3>⚠️ 加载失败</h3>
+      <h3>{{ t('about.loadFailedTitle') }}</h3>
       <pre>{{ loadError }}</pre>
     </div>
 
     <!-- 内容简介 -->
     <section class="section">
-      <h2 class="section-title">内容简介</h2>
+      <h2 class="section-title">{{ t('about.overview') }}</h2>
       <UpdateCard
         :content="introductionContent"
         :status="introductionStatus"
-        error-message="简介加载失败"
-        empty-message="暂无简介内容"
+        :error-message="t('about.introLoadFailed')"
+        :empty-message="t('about.introEmpty')"
         highlighted
       />
     </section>
 
     <!-- 当前更新 -->
     <section class="section">
-      <h2 class="section-title">当前更新</h2>
+      <h2 class="section-title">{{ t('about.latest') }}</h2>
       <UpdateCard
         :content="latestUpdate"
         :status="latestUpdateStatus"
-        error-message="当前更新加载失败"
-        empty-message="暂无更新内容"
+        :error-message="t('about.latestLoadFailed')"
+        :empty-message="t('about.latestEmpty')"
         highlighted
       />
     </section>
 
     <!-- 以前更新 -->
     <section class="section">
-      <h2 class="section-title" id="history-title">历史更新</h2>
+      <h2 class="section-title" id="history-title">{{ t('about.history') }}</h2>
       <div class="update-history">
         <UpdateCard
           v-for="(update, index) in paginatedUpdates"
@@ -45,8 +45,8 @@
         <UpdateCard
           v-if="historyUpdatesStatus !== 'success' || historyUpdates.length === 0"
           :status="historyUpdatesStatus"
-          error-message="历史更新加载失败"
-          empty-message="暂无历史更新"
+          :error-message="t('about.historyLoadFailed')"
+          :empty-message="t('about.historyEmpty')"
         />
       </div>
 
@@ -56,7 +56,7 @@
           @click="goToPage(1)"
           :disabled="currentPage === 1"
           class="pagination-btn"
-          title="第一页"
+          :title="t('common.firstPage')"
           preserve-style
         >
           <template #icon>
@@ -71,7 +71,7 @@
           @click="goToPage(currentPage - 1)"
           :disabled="currentPage === 1"
           class="pagination-btn"
-          title="上一页"
+          :title="t('common.previousPage')"
           preserve-style
         >
           <template #icon>
@@ -82,14 +82,14 @@
         </AppButton>
 
         <div class="pagination-info">
-          {{ currentPage }} / {{ totalPages }}
+          {{ t('common.page', { current: currentPage, total: totalPages }) }}
         </div>
 
         <AppButton
           @click="goToPage(currentPage + 1)"
           :disabled="currentPage === totalPages"
           class="pagination-btn"
-          title="下一页"
+          :title="t('common.nextPage')"
           preserve-style
         >
           <template #icon>
@@ -103,7 +103,7 @@
           @click="goToPage(totalPages)"
           :disabled="currentPage === totalPages"
           class="pagination-btn"
-          title="最后一页"
+          :title="t('common.lastPage')"
           preserve-style
         >
           <template #icon>
@@ -123,6 +123,7 @@ import { ref, computed, onMounted } from 'vue'
 import AppButton from '@/components/AppButton.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import UpdateCard from '@/components/UpdateCard.vue'
+import { useI18n } from '@/utils/i18n'
 
 /**
  * 关于页内容状态常量。
@@ -134,6 +135,8 @@ const CONTENT_STATUS = {
   ERROR: 'error',
   EMPTY: 'empty'
 }
+
+const { t } = useI18n()
 
 const introductionContent = ref('')
 const latestUpdate = ref('')
@@ -293,7 +296,7 @@ const loadMarkdownFile = async (filename) => {
 
     const data = await response.json()
     if (!data?.data || typeof data.data.content !== 'string') {
-      throw new Error('返回数据格式不正确')
+      throw new Error(t('about.invalidData'))
     }
 
     debugLog('响应数据:', data)
@@ -396,7 +399,7 @@ const loadChangelog = async () => {
     }
 
     if (failedUpdates.length > 0 && !loadError.value) {
-      loadError.value = '部分更新日志未能成功加载，请稍后重试或检查文档文件是否完整。'
+      loadError.value = t('about.partialLoadFailed')
     }
 
     if (updates.length === 0) {
@@ -405,7 +408,9 @@ const loadChangelog = async () => {
     }
   } catch (error) {
     debugError('Error loading changelog:', error)
-    loadError.value = `更新日志加载失败：${error.message || '请稍后重试'}`
+    loadError.value = t('about.historyLoadFailedWithMessage', {
+      message: error.message || t('about.tryLater')
+    })
     if (latestUpdateStatus.value === CONTENT_STATUS.LOADING) {
       latestUpdateStatus.value = CONTENT_STATUS.ERROR
     }

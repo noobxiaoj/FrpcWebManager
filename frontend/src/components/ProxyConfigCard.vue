@@ -3,18 +3,18 @@
     <div class="proxy-header">
       <h3 class="proxy-name">
         <span v-if="!proxy.isEditing" class="proxy-type-badge" :class="`badge-${proxy.type}`">{{ proxy.type.toUpperCase() }}</span>
-        {{ proxy.name || '未命名配置' }}
+        {{ proxy.name || t('proxy.unnamed') }}
       </h3>
 
       <!-- 缩略模式 - 在标题行显示配置信息 -->
       <template v-if="!proxy.isEditing">
         <div class="proxy-compact-info" v-if="proxy.type === 'tcp' || proxy.type === 'udp'">
-          <div class="info-item">本地IP: <span class="info-value">{{ proxy.localIP }}:{{ proxy.localPort }}</span></div>
-          <div class="info-item">远程端口: <span class="info-value">{{ proxy.remotePort }}</span></div>
+          <div class="info-item">{{ t('proxy.localIp') }}: <span class="info-value">{{ proxy.localIP }}:{{ proxy.localPort }}</span></div>
+          <div class="info-item">{{ t('proxy.remotePort') }}: <span class="info-value">{{ proxy.remotePort }}</span></div>
         </div>
         <div class="proxy-compact-info proxy-compact-info-http" v-else>
-          <div class="info-item">本地IP: <span class="info-value">{{ proxy.localIP }}:{{ proxy.localPort }}</span></div>
-          <div class="info-item">域名: <span class="info-value">{{ proxy.customDomains || proxy.subdomain || '-' }}</span></div>
+          <div class="info-item">{{ t('proxy.localIp') }}: <span class="info-value">{{ proxy.localIP }}:{{ proxy.localPort }}</span></div>
+          <div class="info-item">{{ t('proxy.domain') }}: <span class="info-value">{{ proxy.customDomains || proxy.subdomain || '-' }}</span></div>
         </div>
       </template>
 
@@ -26,7 +26,7 @@
           class="btn-check"
           preserve-style
           @click="handleCheck"
-          title="验证并完成"
+          :title="t('proxy.check')"
         >
           <template #icon>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -40,7 +40,7 @@
           class="btn-edit"
           preserve-style
           @click="handleToggleEdit"
-          title="编辑"
+          :title="t('proxy.edit')"
         >
           <template #icon>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -49,7 +49,7 @@
             </svg>
           </template>
         </AppButton>
-        <AppButton v-if="proxy.isEditing" type="button" class="btn-remove" preserve-style @click="handleRemove" title="删除此Frpc">
+        <AppButton v-if="proxy.isEditing" type="button" class="btn-remove" preserve-style @click="handleRemove" :title="t('proxy.remove')">
           <template #icon>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -64,7 +64,7 @@
     <div v-if="proxy.isEditing" class="proxy-content">
       <div class="form-row-4">
         <div class="form-group">
-          <label>协议类型 *</label>
+          <label>{{ t('proxy.protocolType') }}</label>
           <select v-model="proxy.type" required>
             <option value="tcp">TCP</option>
             <option value="udp">UDP</option>
@@ -75,42 +75,42 @@
         </div>
 
         <div class="form-group" :class="{ 'has-error': proxy.errors.name }">
-          <label>名称 *</label>
-          <input v-model="proxy.name" type="text" required placeholder="例如: ssh" />
+          <label>{{ t('proxy.name') }}</label>
+          <input v-model="proxy.name" type="text" required :placeholder="t('proxy.placeholders.name')" />
           <span v-if="proxy.errors.name" class="error-message">{{ proxy.errors.name }}</span>
         </div>
 
         <div class="form-group" :class="{ 'has-error': proxy.errors.localIP }">
-          <label>本地IP *</label>
-          <input v-model="proxy.localIP" type="text" required placeholder="例如: 127.0.0.1" />
+          <label>{{ t('proxy.localIp') }} *</label>
+          <input v-model="proxy.localIP" type="text" required :placeholder="t('proxy.placeholders.localIp')" />
           <span v-if="proxy.errors.localIP" class="error-message">{{ proxy.errors.localIP }}</span>
         </div>
 
         <div class="form-group" :class="{ 'has-error': proxy.errors.localPort }">
-          <label>本地端口 *</label>
-          <input v-model="proxy.localPort" type="number" required min="1" max="65535" placeholder="例如: 22" />
+          <label>{{ t('proxy.localPort') }} *</label>
+          <input v-model="proxy.localPort" type="number" required min="1" max="65535" :placeholder="t('proxy.placeholders.localPort')" />
           <span v-if="proxy.errors.localPort" class="error-message">{{ proxy.errors.localPort }}</span>
         </div>
       </div>
 
       <div class="form-row" v-if="proxy.type === 'tcp' || proxy.type === 'udp'">
         <div class="form-group" :class="{ 'has-error': proxy.errors.remotePort }">
-          <label>远程端口 *</label>
-          <input v-model="proxy.remotePort" type="number" required min="1" max="65535" placeholder="例如: 6000" />
+          <label>{{ t('proxy.remotePort') }} *</label>
+          <input v-model="proxy.remotePort" type="number" required min="1" max="65535" :placeholder="t('proxy.placeholders.remotePort')" />
           <span v-if="proxy.errors.remotePort" class="error-message">{{ proxy.errors.remotePort }}</span>
         </div>
       </div>
 
       <div class="form-row" v-if="proxy.type === 'http' || proxy.type === 'https'">
         <div class="form-group" :class="{ 'has-error': proxy.errors.customDomains }">
-          <label>自定义域名(多个用逗号分隔)</label>
-          <input v-model="proxy.customDomains" type="text" placeholder="例如: www.example.com,test.example.com" />
+          <label>{{ t('proxy.customDomains') }}</label>
+          <input v-model="proxy.customDomains" type="text" :placeholder="t('proxy.placeholders.customDomains')" />
           <span v-if="proxy.errors.customDomains" class="error-message">{{ proxy.errors.customDomains }}</span>
         </div>
 
         <div class="form-group" :class="{ 'has-error': proxy.errors.subdomain }">
-          <label>子域名</label>
-          <input v-model="proxy.subdomain" type="text" placeholder="例如: myapp" />
+          <label>{{ t('proxy.subdomain') }}</label>
+          <input v-model="proxy.subdomain" type="text" :placeholder="t('proxy.placeholders.subdomain')" />
           <span v-if="proxy.errors.subdomain" class="error-message">{{ proxy.errors.subdomain }}</span>
         </div>
       </div>
@@ -120,6 +120,7 @@
 
 <script setup>
 import AppButton from '@/components/AppButton.vue'
+import { useI18n } from '@/utils/i18n'
 
 const props = defineProps({
   proxy: {
@@ -133,44 +134,45 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['check', 'toggle-edit', 'remove'])
+const { t } = useI18n()
 
 const validateProxy = (proxy) => {
   const errors = {}
 
   // 基本字段验证
   if (!proxy.name || proxy.name.trim() === '') {
-    errors.name = '请填写名称'
+    errors.name = t('proxy.validation.nameRequired')
   }
 
   if (!proxy.localIP || proxy.localIP.trim() === '') {
-    errors.localIP = '请填写本地IP'
+    errors.localIP = t('proxy.validation.localIpRequired')
   }
 
   if (!proxy.localPort || proxy.localPort === '') {
-    errors.localPort = '请填写本地端口'
+    errors.localPort = t('proxy.validation.localPortRequired')
   } else {
     const localPort = parseInt(proxy.localPort)
     if (isNaN(localPort) || localPort < 1 || localPort > 65535) {
-      errors.localPort = '本地端口必须是1-65535之间的数字'
+      errors.localPort = t('proxy.validation.localPortInvalid')
     }
   }
 
   // 根据类型验证特定字段
   if (proxy.type === 'tcp' || proxy.type === 'udp') {
     if (!proxy.remotePort || proxy.remotePort === '') {
-      errors.remotePort = '请填写远程端口'
+      errors.remotePort = t('proxy.validation.remotePortRequired')
     } else {
       const remotePort = parseInt(proxy.remotePort)
       if (isNaN(remotePort) || remotePort < 1 || remotePort > 65535) {
-        errors.remotePort = '远程端口必须是1-65535之间的数字'
+        errors.remotePort = t('proxy.validation.remotePortInvalid')
       }
     }
   }
 
   if (proxy.type === 'http' || proxy.type === 'https') {
     if (!proxy.customDomains && !proxy.subdomain) {
-      errors.customDomains = '必须填写自定义域名或子域名'
-      errors.subdomain = '必须填写自定义域名或子域名'
+      errors.customDomains = t('proxy.validation.domainOrSubdomainRequired')
+      errors.subdomain = t('proxy.validation.domainOrSubdomainRequired')
     }
   }
 

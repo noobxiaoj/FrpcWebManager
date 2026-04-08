@@ -2,8 +2,8 @@
   <div class="update-card markdown-content" :class="{ 'current-update': highlighted }">
     <div v-if="status === 'success' && content" v-html="renderedContent"></div>
     <div v-else-if="status === 'loading'" class="state-message">{{ t('common.loading') }}</div>
-    <div v-else-if="status === 'error'" class="state-message state-message--error">{{ errorMessage || '内容加载失败' }}</div>
-    <div v-else class="state-message">{{ emptyMessage || '暂无内容' }}</div>
+    <div v-else-if="status === 'error'" class="state-message state-message--error">{{ errorMessage || t('common.loadFailed') }}</div>
+    <div v-else class="state-message">{{ emptyMessage || t('common.noContent') }}</div>
   </div>
 </template>
 

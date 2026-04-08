@@ -35,6 +35,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from '@/utils/i18n'
 
 const props = defineProps({
   server: {
@@ -43,24 +44,25 @@ const props = defineProps({
   }
 })
 
+const { t } = useI18n()
+
 // 状态文本
 const statusText = computed(() => {
   switch (props.server.status) {
     case 'online':
-      return '在线'
+      return t('status.server.online')
     case 'offline':
-      return '离线'
+      return t('status.server.offline')
     case 'no_task':
-      return '无任务'
+      return t('status.server.noTask')
     case 'fault':
-      return '故障'
+      return t('status.server.fault')
     case 'suspected_abnormal':
-      return '疑似异常'
+      return t('status.server.suspectedAbnormal')
     default:
-      return '未知'
+      return t('status.server.unknown')
   }
 })
-
 </script>
 
 <style scoped>

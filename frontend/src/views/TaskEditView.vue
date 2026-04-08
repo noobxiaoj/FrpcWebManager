@@ -1,9 +1,9 @@
 <template>
   <TaskForm
-    title="编辑任务"
-    submit-text="保存"
-    submitting-text="保存中..."
-    loading-text="加载中..."
+    :title="t('taskEdit.title')"
+    :submit-text="t('taskEdit.submit')"
+    :submitting-text="t('taskEdit.submitting')"
+    :loading-text="t('taskEdit.loading')"
     :loading="loading"
     :submitting="submitting"
     :initial-form="initialForm"
@@ -17,10 +17,12 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useTaskStore } from '@/stores/task'
 import TaskForm from '@/components/TaskForm.vue'
+import { useI18n } from '@/utils/i18n'
 
 const router = useRouter()
 const route = useRoute()
 const taskStore = useTaskStore()
+const { t } = useI18n()
 
 const loading = ref(true)
 const submitting = ref(false)
@@ -71,7 +73,7 @@ const loadTask = async () => {
       }))
     }
   } catch (err) {
-    alert('加载任务失败: ' + err.message)
+    alert(`${t('taskEdit.messages.loadFailed')}: ${err.message}`)
     router.push('/tasks')
   } finally {
     loading.value = false
@@ -101,15 +103,15 @@ const handleSubmit = async (payload) => {
     if (taskStatus.value === 'running') {
       try {
         await taskStore.reloadTask(taskId)
-        console.log('任务已自动重载')
+        console.log(t('taskEdit.messages.autoReloaded'))
       } catch (reloadError) {
-        console.error('自动重载任务失败:', reloadError)
+        console.error(`${t('taskEdit.messages.autoReloadFailed')}:`, reloadError)
       }
     }
 
     router.push(`/tasks/${taskId}`)
   } catch (err) {
-    alert('更新任务失败: ' + err.message)
+    alert(`${t('taskEdit.messages.updateFailed')}: ${err.message}`)
   } finally {
     submitting.value = false
   }

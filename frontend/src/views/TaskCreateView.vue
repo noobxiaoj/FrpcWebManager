@@ -1,8 +1,8 @@
 <template>
   <TaskForm
-    title="创建任务"
-    submit-text="创建"
-    submitting-text="创建中..."
+    :title="t('taskCreate.title')"
+    :submit-text="t('taskCreate.submit')"
+    :submitting-text="t('taskCreate.submitting')"
     :submitting="submitting"
     :initial-form="initialForm"
     @submit="handleSubmit"
@@ -15,9 +15,11 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTaskStore } from '@/stores/task'
 import TaskForm from '@/components/TaskForm.vue'
+import { useI18n } from '@/utils/i18n'
 
 const router = useRouter()
 const taskStore = useTaskStore()
+const { t } = useI18n()
 
 const submitting = ref(false)
 const initialForm = {
@@ -56,7 +58,7 @@ const handleSubmit = async (payload) => {
 
     router.push(`/tasks/${newTask.id}`)
   } catch (err) {
-    alert('创建任务失败: ' + err.message)
+    alert(`${t('taskCreate.messages.failed')}: ${err.message}`)
   } finally {
     submitting.value = false
   }

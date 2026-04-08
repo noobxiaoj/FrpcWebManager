@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <PageHeader title="服务器列表">
+    <PageHeader :title="t('home.title')">
       <template #actions>
         <AppButton
           class="page-header-action-button page-header-action-button--icon"
@@ -8,7 +8,7 @@
           @click="handleRefresh"
           :disabled="loading"
           :loading="loading"
-          title="刷新列表"
+          :title="t('home.refreshTitle')"
         >
           <template #icon>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -22,7 +22,7 @@
           class="btn-primary page-header-action-button page-header-action-button--icon"
           preserve-style
           @click="openAddServerModal"
-          title="新建服务器"
+          :title="t('home.createTitle')"
         >
           <template #icon>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -36,7 +36,7 @@
 
     <div v-if="loading && servers.length === 0" class="global-loading">
       <div class="loading-spinner"></div>
-      <p>加载服务器列表中...</p>
+      <p>{{ t('home.loading') }}</p>
     </div>
 
     <div v-else-if="servers.length > 0" class="server-grid">
@@ -58,15 +58,15 @@
         <line x1="6" y1="6" x2="6" y2="6"></line>
         <line x1="6" y1="18" x2="6" y2="18"></line>
       </svg>
-      <h2>暂无服务器</h2>
-      <p>请先添加 FRPC 服务器</p>
+      <h2>{{ t('home.emptyTitle') }}</h2>
+      <p>{{ t('home.emptyDescription') }}</p>
     </div>
 
     <div v-if="showAddServerModal" class="modal-overlay" @click="closeAddServerModal">
       <div class="modal-card" @click.stop>
         <div class="modal-header">
-          <h3 class="modal-title">新建服务器</h3>
-          <AppButton class="modal-close" preserve-style @click="closeAddServerModal" title="关闭">
+          <h3 class="modal-title">{{ t('home.modalTitle') }}</h3>
+          <AppButton class="modal-close" preserve-style @click="closeAddServerModal" :title="t('common.close')">
             <template #icon>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -84,7 +84,7 @@
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
-                服务器名称
+                {{ t('home.serverName') }}
               </label>
               <input
                 id="serverName"
@@ -92,7 +92,7 @@
                 type="text"
                 class="form-input"
                 :class="{ 'input-error': addServerFormErrors.name }"
-                placeholder="例如：生产环境服务器"
+                :placeholder="t('home.placeholders.serverName')"
                 @input="addServerFormErrors.name = ''"
               />
               <span v-if="addServerFormErrors.name" class="form-error">
@@ -108,7 +108,7 @@
                   <line x1="6" y1="6" x2="6.01" y2="6"></line>
                   <line x1="6" y1="18" x2="6.01" y2="18"></line>
                 </svg>
-                服务器地址
+                {{ t('home.serverAddress') }}
               </label>
               <input
                 id="serverAddress"
@@ -116,7 +116,7 @@
                 type="text"
                 class="form-input"
                 :class="{ 'input-error': addServerFormErrors.address }"
-                placeholder="例如：192.168.1.100 或 example.com"
+                :placeholder="t('home.placeholders.serverAddress')"
                 @input="addServerFormErrors.address = ''"
               />
               <span v-if="addServerFormErrors.address" class="form-error">
@@ -131,7 +131,7 @@
                     <circle cx="12" cy="12" r="3"></circle>
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                   </svg>
-                  端口
+                  {{ t('home.port') }}
                 </label>
                 <input
                   id="serverPort"
@@ -139,7 +139,7 @@
                   type="text"
                   class="form-input"
                   :class="{ 'input-error': addServerFormErrors.port }"
-                  placeholder="7000"
+                  :placeholder="t('home.placeholders.port')"
                   @input="addServerFormErrors.port = ''"
                 />
                 <span v-if="addServerFormErrors.port" class="form-error">
@@ -154,7 +154,7 @@
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                   <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                 </svg>
-                密钥（可选）
+                {{ t('home.tokenOptional') }}
               </label>
               <input
                 id="serverToken"
@@ -162,7 +162,7 @@
                 type="password"
                 class="form-input"
                 :class="{ 'input-error': addServerFormErrors.token }"
-                placeholder="请输入服务器密钥（可选）"
+                :placeholder="t('home.placeholders.token')"
                 @input="addServerFormErrors.token = ''"
               />
               <span v-if="addServerFormErrors.token" class="form-error">
@@ -172,7 +172,7 @@
 
             <div class="form-actions">
               <AppButton variant="secondary" type="button" @click="closeAddServerModal">
-                取消
+                {{ t('common.cancel') }}
               </AppButton>
               <AppButton variant="primary" type="submit">
                 <template #icon>
@@ -181,7 +181,7 @@
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                   </svg>
                 </template>
-                添加服务器
+                {{ t('home.submit') }}
               </AppButton>
             </div>
           </form>
@@ -199,8 +199,10 @@ import { serverAPI } from '@/api/server'
 import AppButton from '@/components/AppButton.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import ServerInfo from '@/components/ServerInfo.vue'
+import { useI18n } from '@/utils/i18n'
 
 const router = useRouter()
+const { t } = useI18n()
 
 const loading = ref(false)
 const isInitialized = ref(false)
@@ -269,19 +271,19 @@ const validateServerForm = () => {
   const errors = {}
 
   if (!newServer.value.name.trim()) {
-    errors.name = '请输入服务器名称'
+    errors.name = t('home.validation.nameRequired')
   }
 
   if (!newServer.value.address.trim()) {
-    errors.address = '请输入服务器地址'
+    errors.address = t('home.validation.addressRequired')
   } else if (!/^[\w\.-]+$/.test(newServer.value.address)) {
-    errors.address = '请输入有效的服务器地址'
+    errors.address = t('home.validation.addressInvalid')
   }
 
   if (!newServer.value.port.trim()) {
-    errors.port = '请输入端口号'
+    errors.port = t('home.validation.portRequired')
   } else if (!/^\d{1,5}$/.test(newServer.value.port) || parseInt(newServer.value.port) > 65535) {
-    errors.port = '请输入有效的端口号 (1-65535)'
+    errors.port = t('home.validation.portInvalid')
   }
 
   addServerFormErrors.value = errors
@@ -303,7 +305,7 @@ const submitAddServer = async () => {
     await loadServers()
   } catch (error) {
     console.error('创建服务器失败:', error)
-    alert('创建服务器失败: ' + error.message)
+    alert(`${t('home.messages.createFailed')}: ${error.message}`)
   }
 }
 

@@ -2,14 +2,14 @@
   <div class="server-detail">
     <div v-if="loading" class="loading-state">
       <div class="spinner"></div>
-      <p>加载中...</p>
+      <p>{{ t('common.loading') }}</p>
     </div>
 
     <div v-else-if="server" class="detail-container">
       <section class="card main-card">
         <div class="card-header">
           <div class="header-left">
-            <AppButton class="btn-back" preserve-style @click="goBack" title="返回列表">
+            <AppButton class="btn-back" preserve-style @click="goBack" :title="t('serverDetail.backTitle')">
               <template #icon>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <line x1="19" y1="12" x2="5" y2="12"></line>
@@ -42,7 +42,7 @@
               preserve-style
               @click="refreshServerData"
               :disabled="actionLoading"
-              title="刷新详情与日志"
+              :title="t('serverDetail.refreshTitle')"
             >
               <template #icon>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -58,7 +58,7 @@
               preserve-style
               @click="confirmDeleteServer"
               :disabled="actionLoading"
-              title="删除服务器"
+              :title="t('serverDetail.deleteTitle')"
             >
               <template #icon>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -80,7 +80,7 @@
                 </svg>
               </div>
               <div class="info-content">
-                <span class="info-label">服务器地址</span>
+                <span class="info-label">{{ t('serverDetail.address') }}</span>
                 <span class="info-value">{{ server.address }}</span>
               </div>
             </div>
@@ -93,7 +93,7 @@
                 </svg>
               </div>
               <div class="info-content">
-                <span class="info-label">进程端口</span>
+                <span class="info-label">{{ t('serverDetail.processPort') }}</span>
                 <span class="info-value">{{ processPortText }}</span>
               </div>
             </div>
@@ -108,7 +108,7 @@
                 </svg>
               </div>
               <div class="info-content">
-                <span class="info-label">创建时间</span>
+                <span class="info-label">{{ t('serverDetail.createdAt') }}</span>
                 <span class="info-value">{{ formatDate(server.createdAt) }}</span>
               </div>
             </div>
@@ -121,8 +121,8 @@
                 </svg>
               </div>
               <div class="info-content">
-                <span class="info-label">端口数</span>
-                <span class="info-value">{{ relatedPortCount }} 个</span>
+                <span class="info-label">{{ t('serverDetail.portCount') }}</span>
+                <span class="info-value">{{ t('common.countUnit', { count: relatedPortCount }) }}</span>
               </div>
             </div>
 
@@ -134,8 +134,8 @@
                 </svg>
               </div>
               <div class="info-content">
-                <span class="info-label">运行时长</span>
-                <span class="info-value">{{ server.uptime || '未知' }}</span>
+                <span class="info-label">{{ t('serverDetail.uptime') }}</span>
+                <span class="info-value">{{ server.uptime || t('common.unknown') }}</span>
               </div>
             </div>
 
@@ -147,7 +147,7 @@
                 </svg>
               </div>
               <div class="info-content">
-                <span class="info-label">上次刷新</span>
+                <span class="info-label">{{ t('serverDetail.lastRefresh') }}</span>
                 <span class="info-value">{{ lastRefreshText }}</span>
               </div>
             </div>
@@ -155,16 +155,16 @@
 
           <div class="section-block">
             <div class="section-heading">
-              <h2 class="section-title">关联任务 {{ relatedTasks.length }} 个</h2>
+              <h2 class="section-title">{{ t('serverDetail.relatedTasks', { count: relatedTasks.length }) }}</h2>
               <AppButton
                 class="section-toggle"
                 preserve-style
                 type="button"
                 :aria-expanded="String(taskSectionExpanded)"
-                :title="taskSectionExpanded ? '折叠关联任务' : '展开关联任务'"
+                :title="taskSectionExpanded ? t('serverDetail.collapseTasks') : t('serverDetail.expandTasks')"
                 @click="toggleTaskSection"
               >
-                <span>{{ taskSectionExpanded ? '收起' : '展开' }}</span>
+                <span>{{ taskSectionExpanded ? t('common.collapse') : t('common.expand') }}</span>
                 <svg class="section-toggle-icon" :class="{ 'is-expanded': taskSectionExpanded }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
@@ -177,7 +177,7 @@
                 <line x1="12" y1="8" x2="12" y2="12"></line>
                 <line x1="12" y1="16" x2="12.01" y2="16"></line>
               </svg>
-              <p>当前服务器暂无关联任务</p>
+              <p>{{ t('serverDetail.noRelatedTasks') }}</p>
             </div>
 
             <div
@@ -198,7 +198,7 @@
                   class="task-chip-status"
                   :class="`task-chip-status--${task.status}`"
                   :title="getTaskStatusText(task.status)"
-                  :aria-label="`任务状态：${getTaskStatusText(task.status)}`"
+                  :aria-label="t('serverDetail.taskStatusAria', { status: getTaskStatusText(task.status) })"
                 ></span>
               </button>
             </div>
@@ -206,16 +206,16 @@
 
           <div class="section-block log-section-card" :class="{ 'log-section-card-collapsed': !logSectionExpanded }">
             <div class="section-heading" :class="{ 'section-heading-collapsed': !logSectionExpanded }">
-              <h2 class="section-title">运行日志</h2>
+              <h2 class="section-title">{{ t('serverDetail.runtimeLogs') }}</h2>
               <AppButton
                 class="section-toggle"
                 preserve-style
                 type="button"
                 :aria-expanded="String(logSectionExpanded)"
-                :title="logSectionExpanded ? '折叠运行日志' : '展开运行日志'"
+                :title="logSectionExpanded ? t('serverDetail.collapseLogs') : t('serverDetail.expandLogs')"
                 @click="toggleLogSection"
               >
-                <span>{{ logSectionExpanded ? '收起' : '展开' }}</span>
+                <span>{{ logSectionExpanded ? t('common.collapse') : t('common.expand') }}</span>
                 <svg class="section-toggle-icon" :class="{ 'is-expanded': logSectionExpanded }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
@@ -225,7 +225,7 @@
             <div v-if="logSectionExpanded" class="log-panel">
               <div class="section-subheading">
                 <div class="section-meta">
-                  <span class="section-meta-total">总行数 {{ filteredLogCount }}/{{ logs.length }}</span>
+                  <span class="section-meta-total">{{ t('serverDetail.totalLines', { filtered: filteredLogCount, total: logs.length }) }}</span>
                   <LogFilterButton
                     v-for="filter in logFilterOptions"
                     :key="filter.value"
@@ -243,8 +243,8 @@
                     preserve-style
                     type="button"
                     :disabled="actionLoading"
-                    title="清空日志"
-                    aria-label="清空日志"
+                    :title="t('serverDetail.clearLogs')"
+                    :aria-label="t('serverDetail.clearLogs')"
                     @click="clearLogs"
                   >
                     <template #icon>
@@ -260,7 +260,7 @@
 
               <div v-if="logsLoading" class="log-loading">
                 <div class="spinner spinner-small"></div>
-                <p>加载日志中...</p>
+                <p>{{ t('common.loadingLogs') }}</p>
               </div>
 
               <div v-else-if="logs.length > 0" class="log-scroll-shell">
@@ -297,8 +297,8 @@
     <div v-if="showDeleteConfirmModal" class="modal-overlay" @click="closeDeleteConfirmModal">
       <div class="modal-card" @click.stop>
         <div class="modal-header modal-header--dialog">
-          <h3 class="modal-title">确认删除</h3>
-          <AppButton class="modal-close" preserve-style @click="closeDeleteConfirmModal" title="关闭">
+          <h3 class="modal-title">{{ t('serverDetail.deleteConfirmTitle') }}</h3>
+          <AppButton class="modal-close" preserve-style @click="closeDeleteConfirmModal" :title="t('common.close')">
             <template #icon>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -317,11 +317,11 @@
                 <line x1="12" y1="17" x2="12.01" y2="17"></line>
               </svg>
             </div>
-            <h4 class="delete-confirm-title">删除服务器</h4>
+            <h4 class="delete-confirm-title">{{ t('serverDetail.deleteServerTitle') }}</h4>
 
             <div v-if="serverTasks.length > 0">
               <p class="delete-confirm-message">
-                服务器 <strong>{{ server?.name }}</strong> 还有 <strong>{{ serverTasks.length }}</strong> 个任务：
+                {{ t('serverDetail.deleteWithTasks', { name: server?.name, count: serverTasks.length }) }}
               </p>
               <ul class="task-list">
                 <li v-for="(task, index) in serverTasks" :key="index" class="task-item">
@@ -332,20 +332,20 @@
                   {{ task }}
                 </li>
               </ul>
-              <p class="delete-confirm-warning">确认删除将同时删除以上任务，此操作无法撤销！</p>
+              <p class="delete-confirm-warning">{{ t('serverDetail.deleteWithTasksWarning') }}</p>
             </div>
 
             <div v-else>
               <p class="delete-confirm-message">
-                确定要删除服务器 <strong>{{ server?.name }}</strong> 吗？
+                {{ t('serverDetail.deleteWithoutTasks', { name: server?.name }) }}
               </p>
-              <p class="delete-confirm-warning">此操作无法撤销，删除后所有相关日志将被永久删除。</p>
+              <p class="delete-confirm-warning">{{ t('serverDetail.deleteWithoutTasksWarning') }}</p>
             </div>
           </div>
 
           <div class="dialog-actions">
-            <AppButton variant="secondary" type="button" @click="closeDeleteConfirmModal">取消</AppButton>
-            <AppButton variant="danger" type="button" @click="deleteServer">确认删除</AppButton>
+            <AppButton variant="secondary" type="button" @click="closeDeleteConfirmModal">{{ t('common.cancel') }}</AppButton>
+            <AppButton variant="danger" type="button" @click="deleteServer">{{ t('common.confirmDelete') }}</AppButton>
           </div>
         </div>
       </div>
@@ -361,16 +361,13 @@ import { useTaskStore } from '@/stores/task'
 import { getApiBaseUrl } from '@/utils/api'
 import AppButton from '@/components/AppButton.vue'
 import LogFilterButton from '@/components/LogFilterButton.vue'
+import { useI18n } from '@/utils/i18n'
 
 const router = useRouter()
 const route = useRoute()
 const taskStore = useTaskStore()
+const { locale, t } = useI18n()
 const AVAILABLE_LOG_FILTERS = ['info', 'error', 'warn']
-const LOG_FILTER_OPTIONS = [
-  { value: 'info', label: '信息' },
-  { value: 'error', label: '错误' },
-  { value: 'warn', label: '警告' }
-]
 
 const loading = ref(true)
 const logsLoading = ref(false)
@@ -396,7 +393,10 @@ const settings = ref({
 })
 
 const serverId = computed(() => route.params.id)
-const logFilterOptions = LOG_FILTER_OPTIONS
+const logFilterOptions = computed(() => AVAILABLE_LOG_FILTERS.map((value) => ({
+  value,
+  label: t(`serverDetail.logFilters.${value}`)
+})))
 
 /**
  * 将形如 `host:port` 的地址拆成主机和端口。
@@ -466,7 +466,7 @@ const getTaskCreatedTimestamp = (task) => {
  */
 const getTaskChipMinWidth = (tasks) => {
   const longestNameLength = tasks.reduce((maxLength, task) => {
-    return Math.max(maxLength, getVisualTextLength(task?.name || '未命名任务'))
+    return Math.max(maxLength, getVisualTextLength(task?.name || t('common.unnamed')))
   }, 0)
 
   const estimatedWidth = 120 + longestNameLength * 10
@@ -530,7 +530,7 @@ const relatedTasks = computed(() => {
  * @returns {number} 返回当前服务器关联的总端口数。
  */
 const relatedPortCount = computed(() => {
-  return relatedTasks.value.reduce((total, task) => total + getTaskProxyCount(task), 0)
+    return relatedTasks.value.reduce((total, task) => total + getTaskProxyCount(task), 0)
 })
 
 /**
@@ -541,11 +541,11 @@ const relatedPortCount = computed(() => {
  */
 const processPortText = computed(() => {
   if (!server.value) {
-    return '未分配'
+    return t('common.notAssigned')
   }
 
   const { port } = parseServerAddress(server.value.address)
-  return Number.isInteger(port) && port > 0 ? port : '未分配'
+  return Number.isInteger(port) && port > 0 ? port : t('common.notAssigned')
 })
 
 /**
@@ -569,24 +569,20 @@ const displayedLogs = computed(() => {
  */
 const logEmptyText = computed(() => {
   if (selectedLogFilters.value.length === 0) {
-    return '当前未选择任何日志类型'
+    return t('serverDetail.noLogFilters')
   }
 
   if (selectedLogFilters.value.length === AVAILABLE_LOG_FILTERS.length) {
-    return '当前没有日志记录'
-  }
-
-  const filterTextMap = {
-    info: '信息',
-    error: '错误',
-    warn: '警告'
+    return t('serverDetail.noLogs')
   }
 
   const selectedFilterLabels = AVAILABLE_LOG_FILTERS
     .filter(filter => selectedLogFilters.value.includes(filter))
-    .map(filter => filterTextMap[filter])
+    .map(filter => t(`serverDetail.logFilters.${filter}`))
 
-  return `当前没有${selectedFilterLabels.join('或')}日志`
+  return t('serverDetail.noFilteredLogs', {
+    filters: selectedFilterLabels.join(locale.value === 'en-US' ? ' or ' : '或')
+  })
 })
 
 /**
@@ -598,38 +594,38 @@ const logEmptyText = computed(() => {
 const filteredLogCount = computed(() => displayedLogs.value.length)
 
 const lastRefreshText = computed(() => {
-  if (!lastRefreshTime.value) return '尚未刷新'
+  if (!lastRefreshTime.value) return t('serverDetail.notRefreshed')
 
   const diffMs = currentTime.value - new Date(lastRefreshTime.value).getTime()
   const diffSeconds = Math.max(0, Math.floor(diffMs / 1000))
 
-  if (diffSeconds < 5) return '刚刚'
-  if (diffSeconds < 60) return `${diffSeconds} 秒前`
+  if (diffSeconds < 5) return t('serverDetail.justNow')
+  if (diffSeconds < 60) return t('serverDetail.secondsAgo', { count: diffSeconds })
 
   const diffMinutes = Math.floor(diffSeconds / 60)
-  if (diffMinutes < 60) return `${diffMinutes} 分钟前`
+  if (diffMinutes < 60) return t('serverDetail.minutesAgo', { count: diffMinutes })
 
   const diffHours = Math.floor(diffMinutes / 60)
-  if (diffHours < 24) return `${diffHours} 小时前`
+  if (diffHours < 24) return t('serverDetail.hoursAgo', { count: diffHours })
 
   const diffDays = Math.floor(diffHours / 24)
-  return `${diffDays} 天前`
+  return t('serverDetail.daysAgo', { count: diffDays })
 })
 
 const getStatusText = (status) => {
   switch (status) {
     case 'online':
-      return '在线'
+      return t('status.server.online')
     case 'offline':
-      return '离线'
+      return t('status.server.offline')
     case 'no_task':
-      return '无任务'
+      return t('status.server.noTask')
     case 'fault':
-      return '故障'
+      return t('status.server.fault')
     case 'suspected_abnormal':
-      return '疑似异常'
+      return t('status.server.suspectedAbnormal')
     default:
-      return '未知'
+      return t('status.server.unknown')
   }
 }
 
@@ -641,13 +637,13 @@ const getStatusText = (status) => {
 const getTaskStatusText = (status) => {
   switch (status) {
     case 'running':
-      return '运行中'
+      return t('status.task.running')
     case 'stopped':
-      return '已停止'
+      return t('status.task.stopped')
     case 'error':
-      return '异常'
+      return t('status.task.error')
     default:
-      return status || '未知状态'
+      return status || t('status.task.unknown')
   }
 }
 
@@ -657,7 +653,7 @@ const formatDate = (dateStr) => {
   const date = new Date(dateStr)
   if (Number.isNaN(date.getTime())) return '-'
 
-  return date.toLocaleString('zh-CN', {
+  return date.toLocaleString(locale.value, {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -777,7 +773,7 @@ const loadSettings = async () => {
     })
 
     if (!response.ok) {
-      throw new Error('获取设置失败')
+      throw new Error(t('serverDetail.messages.loadSettingsFailed'))
     }
 
     const data = await response.json()
@@ -811,7 +807,7 @@ const loadLogs = async () => {
     }
   } catch (error) {
     console.error('加载日志失败:', error)
-    alert('加载日志失败: ' + error.message)
+    alert(`${t('serverDetail.messages.loadLogsFailed')}: ${error.message}`)
   } finally {
     logsLoading.value = false
   }
@@ -869,7 +865,7 @@ const clearLogs = async () => {
     lastRefreshTime.value = new Date().toISOString()
   } catch (error) {
     console.error('清空日志失败:', error)
-    alert('清空日志失败: ' + error.message)
+    alert(`${t('serverDetail.messages.clearLogsFailed')}: ${error.message}`)
   } finally {
     actionLoading.value = false
   }
@@ -891,7 +887,7 @@ const confirmDeleteServer = async () => {
     router.push('/')
   } catch (error) {
     console.error('检查服务器任务失败:', error)
-    alert('检查服务器任务失败: ' + error.message)
+    alert(`${t('serverDetail.messages.checkTasksFailed')}: ${error.message}`)
   } finally {
     actionLoading.value = false
   }
@@ -912,7 +908,7 @@ const deleteServer = async () => {
     router.push('/')
   } catch (error) {
     console.error('删除服务器失败:', error)
-    alert('删除服务器失败: ' + error.message)
+    alert(`${t('serverDetail.messages.deleteFailed')}: ${error.message}`)
   } finally {
     actionLoading.value = false
   }
@@ -930,7 +926,7 @@ const initPage = async () => {
     resetRefreshTimer()
   } catch (error) {
     console.error('初始化服务器详情失败:', error)
-    alert('加载服务器详情失败: ' + error.message)
+    alert(`${t('serverDetail.messages.initFailed')}: ${error.message}`)
     router.push('/')
   } finally {
     loading.value = false

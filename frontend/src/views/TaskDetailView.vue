@@ -3,7 +3,7 @@
     <!-- 加载状态 -->
     <div v-if="loading" class="loading-state">
       <div class="spinner"></div>
-      <p>加载中...</p>
+      <p>{{ t('common.loading') }}</p>
     </div>
 
     <div v-else-if="task" class="detail-container">
@@ -12,7 +12,7 @@
         <!-- 头部导航栏 -->
         <div class="card-header">
           <div class="header-left">
-            <AppButton class="btn-back" preserve-style @click="goBack" title="返回列表">
+            <AppButton class="btn-back" preserve-style @click="goBack" :title="t('taskDetail.backTitle')">
               <template #icon>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <line x1="19" y1="12" x2="5" y2="12"></line>
@@ -33,7 +33,7 @@
               class="btn-action start"
               preserve-style
               @click="startTask"
-              title="启动任务"
+              :title="t('taskDetail.startTitle')"
             >
               <template #icon>
                 <svg viewBox="0 0 24 24" fill="currentColor">
@@ -47,7 +47,7 @@
               class="btn-action stop"
               preserve-style
               @click="stopTask"
-              title="停止任务"
+              :title="t('taskDetail.stopTitle')"
             >
               <template #icon>
                 <svg viewBox="0 0 24 24" fill="currentColor">
@@ -62,7 +62,7 @@
               class="btn-action reload"
               preserve-style
               @click="reloadTask"
-              title="重载配置"
+              :title="t('taskDetail.reloadTitle')"
             >
               <template #icon>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -77,7 +77,7 @@
               class="btn-action edit"
               preserve-style
               @click="editTask"
-              title="编辑任务"
+              :title="t('taskDetail.editTitle')"
             >
               <template #icon>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -91,7 +91,7 @@
               class="btn-action delete"
               preserve-style
               @click="deleteTask"
-              title="删除任务"
+              :title="t('taskDetail.deleteTitle')"
             >
               <template #icon>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -115,7 +115,7 @@
                 </svg>
               </div>
               <div class="info-content">
-                <span class="info-label">服务器</span>
+                <span class="info-label">{{ t('taskDetail.server') }}</span>
                 <span class="info-value">{{ getServerDisplayText(task) }}</span>
               </div>
             </div>
@@ -128,8 +128,8 @@
                 </svg>
               </div>
               <div class="info-content">
-                <span class="info-label">端口数量</span>
-                <span class="info-value">{{ task.proxies?.length || 0 }} 个</span>
+                <span class="info-label">{{ t('taskDetail.proxyCount') }}</span>
+                <span class="info-value">{{ t('common.countUnit', { count: task.proxies?.length || 0 }) }}</span>
               </div>
             </div>
 
@@ -143,7 +143,7 @@
                 </svg>
               </div>
               <div class="info-content">
-                <span class="info-label">创建时间</span>
+                <span class="info-label">{{ t('taskDetail.createdAt') }}</span>
                 <span class="info-value">{{ formatDate(task.createdAt) }}</span>
               </div>
             </div>
@@ -151,12 +151,12 @@
 
           <!-- 任务简介 -->
           <div class="task-description">
-            <p>{{ task.description || '暂无描述' }}</p>
+            <p>{{ task.description || t('common.noDescription') }}</p>
           </div>
 
           <!-- 端口配置 -->
           <div class="proxies-section">
-            <h3 class="section-title">端口配置</h3>
+            <h3 class="section-title">{{ t('taskDetail.proxies') }}</h3>
 
             <div v-if="!task.proxies || task.proxies.length === 0" class="empty-state">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -164,7 +164,7 @@
                 <line x1="12" y1="8" x2="12" y2="12"></line>
                 <line x1="12" y1="16" x2="12.01" y2="16"></line>
               </svg>
-              <p>暂无端口配置</p>
+              <p>{{ t('taskDetail.emptyProxies') }}</p>
             </div>
 
             <div v-else>
@@ -172,19 +172,19 @@
                 <div class="proxy-header">
                   <h3 class="proxy-name">
                     <span class="proxy-type-badge" :class="`badge-${proxy.type}`">{{ proxy.type.toUpperCase() }}</span>
-                    {{ proxy.name || '未命名配置' }}
+                    {{ proxy.name || t('proxy.unnamed') }}
                   </h3>
 
                   <!-- TCP/UDP 显示本地IP和远程端口 -->
                   <div v-if="proxy.type === 'tcp' || proxy.type === 'udp'" class="proxy-compact-info">
-                    <div class="info-item">本地IP: <span class="info-value">{{ proxy.localIP }}:{{ proxy.localPort }}</span></div>
-                    <div class="info-item">远程端口: <span class="info-value">{{ proxy.remotePort }}</span></div>
+                    <div class="info-item">{{ t('taskDetail.localIp') }}: <span class="info-value">{{ proxy.localIP }}:{{ proxy.localPort }}</span></div>
+                    <div class="info-item">{{ t('taskDetail.remotePort') }}: <span class="info-value">{{ proxy.remotePort }}</span></div>
                   </div>
 
                   <!-- HTTP/HTTPS 显示本地IP和域名 -->
                   <div v-else class="proxy-compact-info proxy-compact-info-http">
-                    <div class="info-item">本地IP: <span class="info-value">{{ proxy.localIP }}:{{ proxy.localPort }}</span></div>
-                    <div class="info-item">域名: <span class="info-value">{{ proxy.customDomains && proxy.customDomains.length ? proxy.customDomains.join(', ') : (proxy.subdomain || '-') }}</span></div>
+                    <div class="info-item">{{ t('taskDetail.localIp') }}: <span class="info-value">{{ proxy.localIP }}:{{ proxy.localPort }}</span></div>
+                    <div class="info-item">{{ t('taskDetail.domain') }}: <span class="info-value">{{ proxy.customDomains && proxy.customDomains.length ? proxy.customDomains.join(', ') : (proxy.subdomain || '-') }}</span></div>
                   </div>
                 </div>
               </div>
@@ -204,10 +204,12 @@ import { useTaskStore } from '@/stores/task'
 import AppButton from '@/components/AppButton.vue'
 import TaskStatusIndicator from '@/components/TaskStatusIndicator.vue'
 import { getApiBaseUrl } from '@/utils/api'
+import { useI18n } from '@/utils/i18n'
 
 const router = useRouter()
 const route = useRoute()
 const taskStore = useTaskStore()
+const { locale, t } = useI18n()
 
 const task = ref(null)
 const loading = ref(true)
@@ -249,7 +251,7 @@ const loadTask = async () => {
   try {
     task.value = await taskStore.fetchTask(taskId.value)
   } catch (err) {
-    alert('加载任务失败: ' + err.message)
+    alert(`${t('taskDetail.messages.loadFailed')}: ${err.message}`)
     router.push('/tasks')
   }
 }
@@ -264,41 +266,41 @@ const startTask = async () => {
     await loadTask()
     await taskStore.fetchTasks()
   } catch (err) {
-    alert('启动任务失败: ' + err.message)
+    alert(`${t('taskDetail.messages.startFailed')}: ${err.message}`)
   }
 }
 
 const stopTask = async () => {
-  if (!confirm('确定要停止这个任务吗?')) return
+  if (!confirm(t('taskDetail.confirms.stop'))) return
 
   try {
     await taskStore.stopTask(taskId.value)
     await loadTask()
     await taskStore.fetchTasks()
   } catch (err) {
-    alert('停止任务失败: ' + err.message)
+    alert(`${t('taskDetail.messages.stopFailed')}: ${err.message}`)
   }
 }
 
 const reloadTask = async () => {
   try {
     await taskStore.reloadTask(taskId.value)
-    alert('重载成功')
+    alert(t('taskDetail.messages.reloadSuccess'))
     await loadTask()
     await taskStore.fetchTasks()
   } catch (err) {
-    alert('重载任务失败: ' + err.message)
+    alert(`${t('taskDetail.messages.reloadFailed')}: ${err.message}`)
   }
 }
 
 const deleteTask = async () => {
-  if (!confirm('确定要删除这个任务吗?此操作不可恢复。')) return
+  if (!confirm(t('taskDetail.confirms.delete'))) return
 
   try {
     await taskStore.deleteTask(taskId.value)
     router.push('/tasks')
   } catch (err) {
-    alert('删除任务失败: ' + err.message)
+    alert(`${t('taskDetail.messages.deleteFailed')}: ${err.message}`)
   }
 }
 
@@ -309,7 +311,7 @@ const editTask = () => {
 const formatDate = (dateStr) => {
   if (!dateStr) return '-'
   const date = new Date(dateStr)
-  return date.toLocaleDateString('zh-CN', {
+  return date.toLocaleDateString(locale.value, {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit'

@@ -2,7 +2,7 @@
   <div class="task-form-page">
     <div v-if="loading" class="loading-state">
       <div class="spinner"></div>
-      <p>{{ loadingText }}</p>
+      <p>{{ loadingText || t('common.loading') }}</p>
     </div>
 
     <div v-else>
@@ -14,7 +14,7 @@
               <polyline points="12 19 5 12 12 5"></polyline>
             </svg>
           </template>
-          返回
+          {{ t('common.back') }}
         </AppButton>
         <h1 class="page-title">{{ title }}</h1>
         <AppButton
@@ -38,36 +38,36 @@
       <form class="task-form" @submit.prevent="handleSubmit">
         <!-- 基本信息 -->
         <section class="form-section">
-          <h2 class="section-title">基本信息</h2>
+          <h2 class="section-title">{{ t('taskForm.basicInfo') }}</h2>
 
           <div class="form-group">
-            <label for="name">任务名称 *</label>
+            <label for="name">{{ t('taskForm.name') }}</label>
             <input
               id="name"
               v-model="form.name"
               type="text"
               required
-              placeholder="例如: 我的NAS穿透"
+              :placeholder="t('taskForm.placeholders.name')"
             />
           </div>
 
           <div class="form-group">
-            <label for="description">任务描述</label>
+            <label for="description">{{ t('taskForm.description') }}</label>
             <textarea
               id="description"
               v-model="form.description"
               rows="3"
-              placeholder="简要描述这个任务的用途..."
+              :placeholder="t('taskForm.placeholders.description')"
             ></textarea>
           </div>
         </section>
 
         <!-- 服务器配置 -->
         <section class="form-section">
-          <h2 class="section-title">FRPS 服务器配置</h2>
+          <h2 class="section-title">{{ t('taskForm.serverConfig') }}</h2>
 
           <div class="form-group">
-            <label for="serverId">选择服务器 *</label>
+            <label for="serverId">{{ t('taskForm.selectServer') }}</label>
             <select
               id="serverId"
               v-model="form.serverId"
@@ -75,7 +75,7 @@
               :disabled="loadingServers"
               @change="handleServerChange"
             >
-              <option value="" disabled>请选择FRPS服务器</option>
+              <option value="" disabled>{{ t('taskForm.selectServerPlaceholder') }}</option>
               <option
                 v-for="server in availableServers"
                 :key="server.id"
@@ -84,25 +84,25 @@
                 {{ server.name }} ({{ server.address }})
               </option>
             </select>
-            <div v-if="loadingServers" class="loading-servers">加载服务器列表中...</div>
+            <div v-if="loadingServers" class="loading-servers">{{ t('taskForm.loadingServers') }}</div>
             <div v-if="!loadingServers && availableServers.length === 0" class="no-servers">
-              暂无可用服务器，请先在
-              <router-link to="/">服务器页面</router-link>
-              添加服务器
+              {{ t('taskForm.noServersPrefix') }}
+              <router-link to="/">{{ t('taskForm.noServersLink') }}</router-link>
+              {{ t('taskForm.noServersSuffix') }}
             </div>
           </div>
 
           <div v-if="selectedServer" class="server-info">
             <div class="info-item">
-              <span class="info-label">服务器名称:</span>
+              <span class="info-label">{{ t('taskForm.serverName') }}</span>
               <span class="info-value">{{ selectedServer.name }}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">服务器地址:</span>
+              <span class="info-label">{{ t('taskForm.serverAddress') }}</span>
               <span class="info-value">{{ selectedServer.address }}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">状态:</span>
+              <span class="info-label">{{ t('taskForm.serverStatus') }}</span>
               <span
                 class="status-badge"
                 :class="{
@@ -122,7 +122,7 @@
         <!-- Frpc配置 -->
         <section class="form-section">
           <div class="section-header">
-            <h2 class="section-title">FRPC 配置</h2>
+            <h2 class="section-title">{{ t('taskForm.frpcConfig') }}</h2>
             <AppButton type="button" class="btn-add" preserve-style @click="addProxy">
               <template #icon>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -130,12 +130,12 @@
                   <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
               </template>
-              添加端口
+              {{ t('taskForm.addProxy') }}
             </AppButton>
           </div>
 
           <div v-if="form.proxies.length === 0" class="empty-proxies">
-            <p>暂无Frpc配置,点击上方按钮添加</p>
+            <p>{{ t('taskForm.emptyProxies') }}</p>
           </div>
 
           <ProxyConfigCard
@@ -159,6 +159,7 @@ import { reactive, ref, watch, onMounted } from 'vue'
 import { serverAPI } from '@/api/server'
 import AppButton from '@/components/AppButton.vue'
 import ProxyConfigCard from '@/components/ProxyConfigCard.vue'
+import { useI18n } from '@/utils/i18n'
 
 /**
  * 创建空的代理配置对象。
@@ -210,7 +211,7 @@ const props = defineProps({
   },
   loadingText: {
     type: String,
-    default: '加载中...'
+    default: ''
   },
   initialForm: {
     type: Object,
@@ -227,6 +228,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['submit', 'cancel'])
+const { t } = useI18n()
 
 const loadingServers = ref(false)
 const availableServers = ref([])
@@ -339,7 +341,7 @@ const loadServers = async () => {
     applyInitialForm(props.initialForm)
   } catch (error) {
     console.error('加载服务器列表失败:', error)
-    alert('加载服务器列表失败: ' + error.message)
+    alert(`${t('taskForm.alerts.loadServersFailed')}: ${error.message}`)
   } finally {
     loadingServers.value = false
   }
@@ -418,12 +420,12 @@ const buildSubmitPayload = () => ({
  */
 const handleSubmit = () => {
   if (form.proxies.length === 0) {
-    alert('请至少添加一个映射配置')
+    alert(t('taskForm.alerts.noProxy'))
     return
   }
 
   if (!form.serverId) {
-    alert('请选择FRPS服务器')
+    alert(t('taskForm.alerts.noServer'))
     return
   }
 
@@ -448,17 +450,17 @@ const handleCancel = () => {
 const getStatusText = (status) => {
   switch (status) {
     case 'online':
-      return '在线'
+      return t('status.server.online')
     case 'offline':
-      return '离线'
+      return t('status.server.offline')
     case 'no_task':
-      return '无任务'
+      return t('status.server.noTask')
     case 'fault':
-      return '故障'
+      return t('status.server.fault')
     case 'suspected_abnormal':
-      return '疑似异常'
+      return t('status.server.suspectedAbnormal')
     default:
-      return '未知'
+      return t('status.server.unknown')
   }
 }
 
