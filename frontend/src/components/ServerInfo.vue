@@ -29,14 +29,6 @@
           <span>{{ server.address }}</span>
         </div>
       </div>
-
-      <div
-        v-if="runningTaskCount > 0"
-        class="meta-item meta-item--running-task"
-        :title="'正在运行的任务: ' + runningTaskCount"
-      >
-        <span>{{ runningTaskCount }} 个任务</span>
-      </div>
     </div>
   </div>
 </template>
@@ -48,14 +40,6 @@ const props = defineProps({
   server: {
     type: Object,
     required: true
-  },
-  /**
-   * 首页卡片会把“正在运行的任务数”作为单独字段传入。
-   * 这里默认回退为 0，避免父组件异步渲染时出现空值闪烁。
-   */
-  runningTaskCount: {
-    type: Number,
-    default: 0
   }
 })
 
@@ -245,21 +229,10 @@ const statusText = computed(() => {
   flex-shrink: 0;
 }
 
-.meta-item--running-task {
-  display: inline-flex;
-  align-items: center;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
 @media (max-width: 768px) {
   .server-meta {
     flex-direction: column;
     gap: 0.5rem;
-  }
-
-  .meta-item--running-task {
-    margin-left: 0;
   }
 }
 </style>

@@ -93,34 +93,8 @@
                 </svg>
               </div>
               <div class="info-content">
-                <span class="info-label">webServer 端口</span>
-                <span class="info-value">{{ server.webServerPort > 0 ? server.webServerPort : '未分配' }}</span>
-              </div>
-            </div>
-
-            <div class="info-item">
-              <div class="info-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <polyline points="12 6 12 12 16 14"></polyline>
-                </svg>
-              </div>
-              <div class="info-content">
-                <span class="info-label">运行时长</span>
-                <span class="info-value">{{ server.uptime || '未知' }}</span>
-              </div>
-            </div>
-
-            <div class="info-item">
-              <div class="info-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-              </div>
-              <div class="info-content">
-                <span class="info-label">关联任务</span>
-                <span class="info-value">{{ relatedTasks.length }} 个</span>
+                <span class="info-label">进程端口</span>
+                <span class="info-value">{{ processPortText }}</span>
               </div>
             </div>
 
@@ -142,6 +116,32 @@
             <div class="info-item">
               <div class="info-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+              </div>
+              <div class="info-content">
+                <span class="info-label">端口数</span>
+                <span class="info-value">{{ relatedPortCount }} 个</span>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </div>
+              <div class="info-content">
+                <span class="info-label">运行时长</span>
+                <span class="info-value">{{ server.uptime || '未知' }}</span>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M12 20h9"></path>
                   <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z"></path>
                 </svg>
@@ -155,7 +155,7 @@
 
           <div class="section-block">
             <div class="section-heading">
-              <h2 class="section-title">关联任务</h2>
+              <h2 class="section-title">关联任务 {{ relatedTasks.length }} 个</h2>
               <AppButton
                 class="section-toggle"
                 preserve-style
@@ -522,6 +522,30 @@ const relatedTasks = computed(() => {
 
       return getTaskCreatedTimestamp(taskA) - getTaskCreatedTimestamp(taskB)
     })
+})
+
+/**
+ * 汇总当前服务器下所有关联任务的端口配置数量。
+ * 这里将每个任务的 proxies 数量累加，得到更符合详情页语义的“端口数”。
+ * @returns {number} 返回当前服务器关联的总端口数。
+ */
+const relatedPortCount = computed(() => {
+  return relatedTasks.value.reduce((total, task) => total + getTaskProxyCount(task), 0)
+})
+
+/**
+ * 提供“进程端口”的展示文案。
+ * 当前详情页里的进程端口来自服务器地址中的监听端口，
+ * 如果地址不完整或端口解析失败，则统一显示“未分配”。
+ * @returns {string|number} 返回端口号或占位文案。
+ */
+const processPortText = computed(() => {
+  if (!server.value) {
+    return '未分配'
+  }
+
+  const { port } = parseServerAddress(server.value.address)
+  return Number.isInteger(port) && port > 0 ? port : '未分配'
 })
 
 /**

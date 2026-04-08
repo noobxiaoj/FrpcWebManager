@@ -47,10 +47,7 @@
         :class="{ 'server-card-running': server.status === 'online' }"
         @click="viewServer(server.id)"
       >
-        <ServerInfo
-          :server="server"
-          :running-task-count="getRunningTaskCount(server)"
-        />
+        <ServerInfo :server="server" />
       </article>
     </div>
 
@@ -219,22 +216,8 @@ const newServer = ref({
 const addServerFormErrors = ref({})
 
 /**
- * 根据服务器状态推断“正在运行的任务数”展示值。
- * 当前服务器列表接口只返回任务总数，不返回逐任务明细，
- * 因此这里按服务器聚合状态做保守展示：
- * 1. online: 说明至少存在运行中的任务，展示全部关联任务数
- * 2. 其他状态：统一展示 0
- *
- * @param {Object} server - 服务器信息
- * @returns {number} 列表卡片中展示的运行中任务数
- */
-const getRunningTaskCount = (server) => {
-  if (!server) return 0
-  return server.status === 'online' ? (server.taskCount || 0) : 0
-}
-
-/**
- * 拉取服务器列表，并刷新首页卡片展示数据。
+ * 拉取首页卡片所需的服务器与任务数据。
+ * 当前首页仅展示服务器列表，因此只需要刷新服务器数据即可。
  */
 const loadServers = async () => {
   try {
