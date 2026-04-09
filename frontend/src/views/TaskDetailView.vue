@@ -404,10 +404,8 @@ const getServerDisplayText = (task) => {
   height: 2.25rem;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
-  background: var(--bg-secondary);
-  cursor: pointer;
-  transition: all 0.2s;
-  padding: 0;
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .btn-action svg {
@@ -422,75 +420,33 @@ const getServerDisplayText = (task) => {
 .btn-action.start {
   border-color: var(--success-color);
   background: var(--success-color-bg);
-}
-
-.btn-action.start:hover {
-  opacity: 0.8;
-}
-
-.btn-action.start svg {
-  stroke: var(--success-color);
+  color: var(--success-color);
 }
 
 .btn-action.stop {
-  border-color: var(--danger-color);
-  background: var(--danger-color-bg);
-}
-
-.btn-action.stop:hover {
-  opacity: 0.8;
-}
-
-.btn-action.stop svg {
-  stroke: var(--danger-color);
+  /* 任务“停止”按钮对齐服务器详情页“暂停”按钮的视觉语义。 */
+  border-color: var(--paused-color);
+  background: var(--paused-color-bg);
+  color: var(--paused-color);
 }
 
 .btn-action.reload {
-  border-color: var(--accent-color);
-  background: var(--accent-color-bg);
-}
-
-.btn-action.reload:hover {
-  opacity: 0.8;
-}
-
-.btn-action.reload svg {
-  stroke: var(--accent-color);
+  /* 任务“重载”按钮对齐服务器详情页“重启”按钮的视觉语义。 */
+  border-color: var(--warning-color);
+  background: var(--warning-color-bg);
+  color: var(--warning-color);
 }
 
 .btn-action.edit {
   border-color: var(--edit-color);
   background: var(--edit-color-bg);
-}
-
-.btn-action.edit:hover {
-  opacity: 0.8;
-}
-
-.btn-action.edit svg {
-  stroke: var(--edit-color);
-}
-
-.btn-action.edit:hover svg {
-  stroke: var(--edit-color);
+  color: var(--edit-color);
 }
 
 .btn-action.delete {
   border-color: var(--danger-color);
   background: var(--danger-color-bg);
-}
-
-.btn-action.delete:hover {
-  opacity: 0.8;
-  border-color: var(--danger-color);
-}
-
-.btn-action.delete svg {
-  stroke: var(--danger-color);
-}
-
-.btn-action.delete:hover svg {
-  stroke: var(--danger-color);
+  color: var(--danger-color);
 }
 
 .btn-primary {

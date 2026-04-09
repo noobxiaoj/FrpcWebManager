@@ -119,7 +119,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import AppButton from '@/components/AppButton.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import UpdateCard from '@/components/UpdateCard.vue'
@@ -136,7 +136,7 @@ const CONTENT_STATUS = {
   EMPTY: 'empty'
 }
 
-const { t } = useI18n()
+const { locale, t } = useI18n()
 
 const introductionContent = ref('')
 const latestUpdate = ref('')
@@ -145,6 +145,7 @@ const loadError = ref('')
 const introductionStatus = ref(CONTENT_STATUS.LOADING)
 const latestUpdateStatus = ref(CONTENT_STATUS.LOADING)
 const historyUpdatesStatus = ref(CONTENT_STATUS.LOADING)
+const latestLoadRequestId = ref(0)
 
 /**
  * 仅在开发环境输出调试日志。
@@ -277,11 +278,25 @@ const getApiUrl = () => {
   return ''
 }
 
+/**
+ * 读取当前文档语言参数。
+ * 关于页文档不再把语言写死在文件名里，而是通过接口参数交给后端做语言版本选择，
+ * 这样前端始终只认“基础文件名”，切换语言时也更容易统一回退策略。
+ *
+ * @returns {string} 当前接口请求使用的语言代码
+ */
+const getDocsLanguage = () => {
+  return locale.value || 'zh-CN'
+}
+
 // 加载 markdown 文件
 const loadMarkdownFile = async (filename) => {
   try {
     const apiUrl = getApiUrl()
-    const url = `${apiUrl}/api/changelog/file/${filename}`
+    const params = new URLSearchParams({
+      lang: getDocsLanguage()
+    })
+    const url = `${apiUrl}/api/changelog/file/${filename}?${params.toString()}`
     debugLog('加载文件使用的 API:', url)
     debugLog('环境变量 VITE_API_URL:', import.meta.env.VITE_API_URL)
 
@@ -317,8 +332,12 @@ const extractVersionFromFilename = (filename) => {
 
 // 加载所有更新日志
 const loadChangelog = async () => {
+  const requestId = Date.now()
+  latestLoadRequestId.value = requestId
+
   try {
     debugLog('开始加载更新日志...')
+    debugLog('当前文档语言:', getDocsLanguage())
     debugLog('当前页面地址:', window.location.href)
     loadError.value = ''
     introductionStatus.value = CONTENT_STATUS.LOADING
@@ -342,10 +361,13 @@ const loadChangelog = async () => {
 
     // 从后端 API 获取版本文件列表
     const apiUrl = getApiUrl()
+    const params = new URLSearchParams({
+      lang: getDocsLanguage()
+    })
     debugLog('使用 API 地址:', apiUrl)
-    debugLog('完整请求 URL:', `${apiUrl}/api/changelog/files`)
+    debugLog('完整请求 URL:', `${apiUrl}/api/changelog/files?${params.toString()}`)
 
-    const versionsResponse = await fetch(`${apiUrl}/api/changelog/files`, {
+    const versionsResponse = await fetch(`${apiUrl}/api/changelog/files?${params.toString()}`, {
       credentials: 'include'
     })
     debugLog('响应状态:', versionsResponse.status, versionsResponse.statusText)
@@ -385,6 +407,12 @@ const loadChangelog = async () => {
     const validUpdates = updateContents.filter(item => typeof item.content === 'string' && item.content.trim())
     const failedUpdates = updateContents.filter(item => item.content === null)
     debugLog('有效的更新数量:', validUpdates.length)
+
+    // 如果用户在加载过程中切换了语言，则丢弃旧请求结果，
+    // 避免英文与中文内容交叉覆盖。
+    if (latestLoadRequestId.value !== requestId) {
+      return
+    }
 
     // 第一个作为最新更新
     if (validUpdates.length > 0) {
@@ -430,6 +458,14 @@ onMounted(() => {
   debugLog('==============================')
   loadChangelog()
 })
+
+watch(
+  locale,
+  () => {
+    currentPage.value = 1
+    loadChangelog()
+  }
+)
 </script>
 
 <style scoped>

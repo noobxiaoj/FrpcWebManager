@@ -115,7 +115,63 @@ const route = useRoute()
 const taskStore = useTaskStore()
 const { t } = useI18n()
 
-const tasks = computed(() => taskStore.tasks)
+/**
+ * 任务状态排序权重。
+ * 用户给出的规则是“异常 > 在线 > 离线 > 无任务”，
+ * 映射到任务状态后采用：error > running > stopped > 其他。
+ *
+ * @param {string} status - 任务状态值
+ * @returns {number} 排序权重，值越大越靠前
+ */
+const getTaskStatusWeight = (status) => {
+  switch (status) {
+    case 'error':
+      return 4
+    case 'running':
+      return 3
+    case 'stopped':
+      return 2
+    default:
+      return 1
+  }
+}
+
+/**
+ * 获取任务的端口数量。
+ * 端口数量直接取 proxies 数组长度，缺失时按 0 处理。
+ *
+ * @param {{proxies?: Array<unknown>}} task - 任务对象
+ * @returns {number} 任务端口数量
+ */
+const getTaskProxyCount = (task) => {
+  return Array.isArray(task?.proxies) ? task.proxies.length : 0
+}
+
+/**
+ * 统一任务列表排序：
+ * 1. 状态：异常 > 在线 > 离线 > 无任务
+ * 2. 端口数量：从大到小
+ * 3. 创建时间：从晚到早
+ *
+ * @returns {Array<object>} 排序后的任务列表副本
+ */
+const tasks = computed(() => {
+  return [...taskStore.tasks].sort((taskA, taskB) => {
+    const statusWeightDiff = getTaskStatusWeight(taskB.status) - getTaskStatusWeight(taskA.status)
+    if (statusWeightDiff !== 0) {
+      return statusWeightDiff
+    }
+
+    const proxyCountDiff = getTaskProxyCount(taskB) - getTaskProxyCount(taskA)
+    if (proxyCountDiff !== 0) {
+      return proxyCountDiff
+    }
+
+    const createdAtA = new Date(taskA.createdAt || 0).getTime()
+    const createdAtB = new Date(taskB.createdAt || 0).getTime()
+    return createdAtB - createdAtA
+  })
+})
 
 const handleRefresh = () => {
   taskStore.fetchTasks()

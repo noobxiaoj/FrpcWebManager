@@ -12,6 +12,49 @@ import (
 	"github.com/xiaoj/frpc_webmanager/internal/middleware"
 )
 
+/**
+ * 归一化文档语言参数。
+ * 当前文档仅区分中文与英文两套版本，英文统一接收 en / en-US / en-GB 等前缀，
+ * 其余情况全部回退为中文，保证接口行为稳定。
+ *
+ * @param lang 原始语言参数
+ * @return 归一化后的语言标识，仅返回 zh 或 en
+ */
+func normalizeDocsLanguage(lang string) string {
+	if strings.HasPrefix(strings.ToLower(strings.TrimSpace(lang)), "en") {
+		return "en"
+	}
+
+	return "zh"
+}
+
+/**
+ * 判断当前文件是否为英文文档变体。
+ * 英文文档统一采用 `.en.md` 后缀命名，例如 `v0.9.2.en.md`。
+ *
+ * @param filename 文档文件名
+ * @return 是否为英文文档文件
+ */
+func isEnglishDocFile(filename string) bool {
+	return strings.HasSuffix(strings.ToLower(filename), ".en.md")
+}
+
+/**
+ * 根据基础文件名与语言生成目标文档文件名。
+ * 中文直接读取原文件；英文优先映射到 `.en.md` 文件。
+ *
+ * @param filename 基础文档文件名，例如 `v0.9.2.md`
+ * @param lang 归一化后的语言标识
+ * @return 对应语言的文档文件名
+ */
+func localizedDocFilename(filename string, lang string) string {
+	if lang != "en" || !strings.HasSuffix(strings.ToLower(filename), ".md") {
+		return filename
+	}
+
+	return strings.TrimSuffix(filename, ".md") + ".en.md"
+}
+
 // SetupRoutes 设置路由
 func SetupRoutes(r *gin.Engine, taskHandler *handler.TaskHandler, serverHandler *handler.ServerHandler, settingsHandler *handler.SettingsHandler, ipWhitelistMiddleware *middleware.IPWhitelistMiddleware) {
 	// 应用IP白名单中间件到所有API路由（除了健康检查）
@@ -82,6 +125,7 @@ func SetupRoutes(r *gin.Engine, taskHandler *handler.TaskHandler, serverHandler 
 		// 文档路由
 		api.GET("/changelog/files", func(c *gin.Context) {
 			docsPath := "./docs"
+			lang := normalizeDocsLanguage(c.Query("lang"))
 
 			// 读取目录中的所有文件
 			files, err := os.ReadDir(docsPath)
@@ -92,15 +136,35 @@ func SetupRoutes(r *gin.Engine, taskHandler *handler.TaskHandler, serverHandler 
 
 			var versionFiles []string
 
-			// 筛选出版本文件 (v开头的.md文件)
+			// 筛选出版本文件（统一返回基础文件名）。
+			// 英文模式下只返回“存在英文翻译版本”的条目，避免前端切英文后仍混入中文原文。
 			for _, file := range files {
 				filename := file.Name()
-				if !file.IsDir() && strings.HasSuffix(filename, ".md") && strings.HasPrefix(strings.ToLower(filename), "v") {
-					// 排除简介.md
-					if filename != "简介.md" {
-						versionFiles = append(versionFiles, filename)
+
+				if file.IsDir() || !strings.HasSuffix(strings.ToLower(filename), ".md") {
+					continue
+				}
+
+				if isEnglishDocFile(filename) {
+					continue
+				}
+
+				if !strings.HasPrefix(strings.ToLower(filename), "v") {
+					continue
+				}
+
+				if filename == "简介.md" {
+					continue
+				}
+
+				if lang == "en" {
+					englishFilename := localizedDocFilename(filename, lang)
+					if _, statErr := os.Stat(filepath.Join(docsPath, englishFilename)); statErr != nil {
+						continue
 					}
 				}
+
+				versionFiles = append(versionFiles, filename)
 			}
 
 			// 按文件名排序
@@ -115,6 +179,7 @@ func SetupRoutes(r *gin.Engine, taskHandler *handler.TaskHandler, serverHandler 
 		api.GET("/changelog/file/:filename", func(c *gin.Context) {
 			filename := c.Param("filename")
 			docsPath := "./docs"
+			lang := normalizeDocsLanguage(c.Query("lang"))
 
 			// 安全检查:防止路径遍历攻击
 			if strings.Contains(filename, "..") || strings.Contains(filename, "/") || strings.Contains(filename, "\\") {
@@ -122,7 +187,18 @@ func SetupRoutes(r *gin.Engine, taskHandler *handler.TaskHandler, serverHandler 
 				return
 			}
 
-			filePath := filepath.Join(docsPath, filename)
+			// 根据当前语言优先读取对应语言版本；
+			// 若英文文档尚未提供，则自动回退到中文原始文件，避免关于页直接报错。
+			targetFilename := filename
+			if !isEnglishDocFile(filename) {
+				localizedFilename := localizedDocFilename(filename, lang)
+				localizedPath := filepath.Join(docsPath, localizedFilename)
+				if _, statErr := os.Stat(localizedPath); statErr == nil {
+					targetFilename = localizedFilename
+				}
+			}
+
+			filePath := filepath.Join(docsPath, targetFilename)
 
 			// 读取文件内容
 			content, err := os.ReadFile(filePath)

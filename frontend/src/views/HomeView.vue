@@ -34,14 +34,14 @@
       </template>
     </PageHeader>
 
-    <div v-if="loading && servers.length === 0" class="global-loading">
+    <div v-if="loading && sortedServers.length === 0" class="global-loading">
       <div class="loading-spinner"></div>
       <p>{{ t('home.loading') }}</p>
     </div>
 
-    <div v-else-if="servers.length > 0" class="server-grid">
+    <div v-else-if="sortedServers.length > 0" class="server-grid">
       <article
-        v-for="server in servers"
+        v-for="server in sortedServers"
         :key="server.id"
         class="server-card"
         :class="{ 'server-card-running': server.status === 'online' }"
@@ -73,8 +73,9 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { taskApi } from '@/api'
 import { serverAPI } from '@/api/server'
 import AppButton from '@/components/AppButton.vue'
 import PageHeader from '@/components/PageHeader.vue'
@@ -88,18 +89,109 @@ const { t } = useI18n()
 const loading = ref(false)
 const isInitialized = ref(false)
 const servers = ref([])
+const tasks = ref([])
 
 const showAddServerModal = ref(false)
 const submittingServer = ref(false)
 
 /**
+ * 服务器状态排序权重。
+ * 需求顺序为：异常 > 在线 > 离线 > 无任务。
+ * 当前系统里“异常”包含 fault 和 suspected_abnormal，“暂停”更接近离线语义，因此归入离线档位。
+ *
+ * @param {string} status - 服务器状态值
+ * @returns {number} 排序权重，值越大越靠前
+ */
+const getServerStatusWeight = (status) => {
+  switch (status) {
+    case 'fault':
+    case 'suspected_abnormal':
+      return 4
+    case 'online':
+      return 3
+    case 'offline':
+    case 'paused':
+      return 2
+    case 'no_task':
+      return 1
+    default:
+      return 0
+  }
+}
+
+/**
+ * 统计指定服务器关联的端口总数。
+ * 首页服务器接口没有直接返回端口数量，因此这里通过任务列表中 proxies 的长度累加得到。
+ *
+ * @param {{address?: string}} server - 服务器对象
+ * @returns {number} 该服务器关联的端口总数
+ */
+const getServerPortCount = (server) => {
+  const serverAddress = server?.address || ''
+  if (!serverAddress) {
+    return 0
+  }
+
+  return tasks.value.reduce((total, task) => {
+    const taskAddress = `${task.serverAddr || ''}:${task.serverPort || ''}`
+    if (taskAddress !== serverAddress) {
+      return total
+    }
+
+    return total + (Array.isArray(task.proxies) ? task.proxies.length : 0)
+  }, 0)
+}
+
+/**
+ * 首页服务器统一排序：
+ * 1. 状态：异常 > 在线 > 离线 > 无任务
+ * 2. 端口数量：从大到小
+ * 3. 创建时间：从晚到早
+ *
+ * @returns {Array<object>} 排序后的服务器列表副本
+ */
+const sortedServers = computed(() => {
+  return [...servers.value].sort((serverA, serverB) => {
+    const statusWeightDiff = getServerStatusWeight(serverB.status) - getServerStatusWeight(serverA.status)
+    if (statusWeightDiff !== 0) {
+      return statusWeightDiff
+    }
+
+    const portCountDiff = getServerPortCount(serverB) - getServerPortCount(serverA)
+    if (portCountDiff !== 0) {
+      return portCountDiff
+    }
+
+    const createdAtA = new Date(serverA.createdAt || 0).getTime()
+    const createdAtB = new Date(serverB.createdAt || 0).getTime()
+    return createdAtB - createdAtA
+  })
+})
+
+/**
  * 拉取首页卡片所需的服务器与任务数据。
- * 当前首页仅展示服务器列表，因此只需要刷新服务器数据即可。
+ * 虽然首页只展示服务器卡片，但排序依赖“端口数量”，
+ * 所以这里会额外拉取任务列表，用于统计每台服务器关联的端口总数。
  */
 const loadServers = async () => {
   try {
     loading.value = true
-    servers.value = await serverAPI.listServers()
+    const [serverResult, taskResult] = await Promise.allSettled([
+      serverAPI.listServers(),
+      taskApi.list()
+    ])
+
+    if (serverResult.status === 'fulfilled') {
+      servers.value = serverResult.value
+    } else {
+      throw serverResult.reason
+    }
+
+    // 任务列表仅用于辅助首页排序。
+    // 如果这里失败，首页仍然展示服务器列表，只是端口数量排序临时回退为 0。
+    tasks.value = taskResult.status === 'fulfilled'
+      ? (taskResult.value?.data?.tasks || [])
+      : []
   } catch (error) {
     console.error('加载服务器列表失败:', error)
   } finally {
