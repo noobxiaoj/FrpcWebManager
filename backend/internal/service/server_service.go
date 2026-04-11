@@ -89,6 +89,7 @@ func (s *ServerService) CreateServer(req *model.CreateServerRequest) (*model.Ser
 		ID:           utils.GenerateUUID(),
 		Name:         req.Name,
 		Address:      fmt.Sprintf("%s:%s", req.Address, req.Port),
+		Token:        req.Token,
 		Status:       model.ServerStatusNoTask, // 新服务器默认为无任务状态
 		Uptime:       "",
 		LogMaxHeight: "none",
@@ -119,6 +120,9 @@ func (s *ServerService) UpdateServer(id string, req *model.UpdateServerRequest) 
 	}
 	if req.Address != nil && req.Port != nil {
 		server.Address = fmt.Sprintf("%s:%s", *req.Address, *req.Port)
+	}
+	if req.Token != nil {
+		server.Token = *req.Token
 	}
 	server.UpdatedAt = time.Now()
 
@@ -159,11 +163,7 @@ func (s *ServerService) RestartServer(id string) error {
 		return fmt.Errorf("服务器没有关联任务，无法重启")
 	}
 
-	// 获取认证 token
-	authToken := ""
-	if tasks[0].AuthToken != "" {
-		authToken = tasks[0].AuthToken
-	}
+	authToken := resolveServerAuthToken(server, tasks)
 
 	// 如果进程当前正在运行，先停止再启动，保证符合“重启”的语义
 	if s.frpcManager.IsServerRunning(addr, port) {
@@ -250,11 +250,8 @@ func (s *ServerService) StartPausedServer(id string) error {
 	}
 
 	runningTasks := make([]*model.Task, 0, len(tasks))
-	authToken := ""
+	authToken := resolveServerAuthToken(server, tasks)
 	for _, task := range tasks {
-		if authToken == "" && task.AuthToken != "" {
-			authToken = task.AuthToken
-		}
 		if task.Status == model.TaskStatusRunning {
 			runningTasks = append(runningTasks, task)
 		}
@@ -403,11 +400,7 @@ func (s *ServerService) GenerateAndSaveConfig(serverID string) error {
 		return fmt.Errorf("服务器没有关联的任务")
 	}
 
-	// 使用第一个任务的 authToken(假设同一服务器的所有任务使用相同的 token)
-	authToken := ""
-	if len(tasks) > 0 && tasks[0].AuthToken != "" {
-		authToken = tasks[0].AuthToken
-	}
+	authToken := resolveServerAuthToken(server, tasks)
 
 	// 保存配置文件(包含所有状态的任务)
 	if err := s.configService.SaveMergedConfigAll(addr, port, authToken, tasks); err != nil {
@@ -430,11 +423,7 @@ func (s *ServerService) GenerateAndSaveConfigByAddr(serverAddr string, serverPor
 		return nil // 没有任务不算错误
 	}
 
-	// 使用第一个任务的 authToken(假设同一服务器的所有任务使用相同的 token)
-	authToken := ""
-	if len(tasks) > 0 && tasks[0].AuthToken != "" {
-		authToken = tasks[0].AuthToken
-	}
+	authToken := s.ResolveAuthTokenByAddr(serverAddr, serverPort, tasks)
 
 	// 保存配置文件(包含所有状态的任务)
 	if err := s.configService.SaveMergedConfigAll(serverAddr, serverPort, authToken, tasks); err != nil {
@@ -579,6 +568,31 @@ func (s *ServerService) IsServerPausedByAddr(serverAddr string, serverPort int) 
 	return false, fmt.Errorf("服务器不存在: %s:%d", serverAddr, serverPort)
 }
 
+// ResolveAuthTokenByAddr 获取指定服务器实际用于 frpc 配置的认证密钥。
+// 优先使用服务器自身保存的 Token；如果旧数据还没有服务器 Token，则回退到任务里的 AuthToken，
+// 这样可以兼容早期把密钥存在任务上的数据，不会因为升级后立刻丢失鉴权配置。
+// @param serverAddr string - frps 服务器地址，不包含端口
+// @param serverPort int - frps 服务器端口
+// @param fallbackTasks []*model.Task - 旧数据兼容用任务列表，可传 nil
+// @returns string 返回最终用于 auth.token 的密钥，找不到时返回空字符串
+func (s *ServerService) ResolveAuthTokenByAddr(serverAddr string, serverPort int, fallbackTasks []*model.Task) string {
+	servers, err := s.repo.ListServers()
+	if err == nil {
+		for i := range servers {
+			addr, port, parseErr := parseServerAddress(servers[i].Address)
+			if parseErr != nil {
+				continue
+			}
+
+			if addr == serverAddr && port == serverPort {
+				return resolveServerAuthToken(&servers[i], fallbackTasks)
+			}
+		}
+	}
+
+	return firstTaskAuthToken(fallbackTasks)
+}
+
 // UpdateServerTaskCountByAddr 根据服务器地址和端口更新任务数量
 func (s *ServerService) UpdateServerTaskCountByAddr(serverAddr string, serverPort int) error {
 	// 获取所有服务器
@@ -705,4 +719,31 @@ func (s *ServerService) UpdateServerLock(id string, locked bool) error {
 
 	// 保存更新
 	return s.repo.UpdateServer(server)
+}
+
+// resolveServerAuthToken 获取服务器启动时应使用的认证密钥。
+// 服务器 Token 是当前界面上的主配置入口；任务 AuthToken 只作为历史数据兜底。
+// @param server *model.Server - 当前服务器对象
+// @param fallbackTasks []*model.Task - 用于兼容旧数据的任务列表
+// @returns string 返回最终用于 frpc auth.token 的密钥
+func resolveServerAuthToken(server *model.Server, fallbackTasks []*model.Task) string {
+	if server != nil && server.Token != "" {
+		return server.Token
+	}
+
+	return firstTaskAuthToken(fallbackTasks)
+}
+
+// firstTaskAuthToken 从任务列表中取第一个非空 AuthToken。
+// 旧版本曾把服务端认证密钥保存在任务上，这个兜底能保证旧数据仍可启动。
+// @param tasks []*model.Task - 需要扫描的任务列表
+// @returns string 返回第一个非空任务认证密钥，没有时返回空字符串
+func firstTaskAuthToken(tasks []*model.Task) string {
+	for _, task := range tasks {
+		if task != nil && task.AuthToken != "" {
+			return task.AuthToken
+		}
+	}
+
+	return ""
 }

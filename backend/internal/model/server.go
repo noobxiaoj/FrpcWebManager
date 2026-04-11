@@ -26,6 +26,7 @@ type Server struct {
 	ID               string       `json:"id"`               // 服务器唯一标识
 	Name             string       `json:"name"`             // 服务器名称
 	Address          string       `json:"address"`          // 服务器地址（包含端口）
+	Token            string       `json:"token"`            // frps 认证密钥（可选）
 	Status           ServerStatus `json:"status"`           // 服务器状态
 	Paused           bool         `json:"paused"`           // 是否暂停；暂停后不会自动拉起 frpc 进程
 	TaskCount        int          `json:"taskCount"`        // 任务数量

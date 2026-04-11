@@ -254,11 +254,7 @@ func (s *TaskService) StartTask(id string) error {
 
 // reloadServerWithTasks 热重载服务器
 func (s *TaskService) reloadServerWithTasks(serverAddr string, serverPort int, tasks []*model.Task) error {
-	// 获取第一个任务的authToken（假设同一服务器的任务使用相同token）
-	authToken := ""
-	if tasks != nil && len(tasks) > 0 {
-		authToken = tasks[0].AuthToken
-	}
+	authToken := s.serverService.ResolveAuthTokenByAddr(serverAddr, serverPort, tasks)
 
 	// 使用frpcManager热重载
 	if err := s.frpcManager.ReloadServer(serverAddr, serverPort, authToken, tasks); err != nil {
@@ -270,11 +266,7 @@ func (s *TaskService) reloadServerWithTasks(serverAddr string, serverPort int, t
 
 // startServerProcess 启动服务器进程
 func (s *TaskService) startServerProcess(serverAddr string, serverPort int, tasks []*model.Task) error {
-	// 获取authToken
-	authToken := ""
-	if tasks != nil && len(tasks) > 0 {
-		authToken = tasks[0].AuthToken
-	}
+	authToken := s.serverService.ResolveAuthTokenByAddr(serverAddr, serverPort, tasks)
 
 	// 使用frpcManager启动进程
 	if err := s.frpcManager.StartServer(serverAddr, serverPort, authToken, tasks); err != nil {
@@ -453,7 +445,7 @@ func (s *TaskService) RestoreRunningTasks() error {
 
 		serverAddr := tasks[0].ServerAddr
 		serverPort := tasks[0].ServerPort
-		authToken := tasks[0].AuthToken
+		authToken := s.serverService.ResolveAuthTokenByAddr(serverAddr, serverPort, tasks)
 
 		isPaused, pauseErr := s.serverService.IsServerPausedByAddr(serverAddr, serverPort)
 		if pauseErr == nil && isPaused {
