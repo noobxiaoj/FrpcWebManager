@@ -1,6 +1,11 @@
 package security
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"crypto/rand"
+	"encoding/base64"
+
+	"golang.org/x/crypto/bcrypt"
+)
 
 /**
  * HashPassword 使用 bcrypt 对密码进行哈希。
@@ -28,4 +33,20 @@ func HashPassword(password string) (string, error) {
  */
 func VerifyPassword(hashedPassword string, plainPassword string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plainPassword)) == nil
+}
+
+/**
+ * GenerateSessionVersion 生成密码认证会话版本。
+ * 该值会参与登录 Cookie 签名，修改密码时轮换后旧 Cookie 会自然失效。
+ *
+ * @returns string 返回 URL 安全的随机会话版本
+ * @returns error 随机数生成失败时返回错误
+ */
+func GenerateSessionVersion() (string, error) {
+	randomBytes := make([]byte, 32)
+	if _, err := rand.Read(randomBytes); err != nil {
+		return "", err
+	}
+
+	return base64.RawURLEncoding.EncodeToString(randomBytes), nil
 }

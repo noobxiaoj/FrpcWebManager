@@ -17,6 +17,7 @@ const passwordAuthCookieName = "frpc_webmanager_auth"
 // PasswordAuthMiddleware 提供基于会话 Cookie 的页面访问认证。
 // 这里使用内存中的随机密钥对 Cookie 内容签名，避免客户端伪造登录态。
 // Cookie 不设置持久化过期时间，因此浏览器关闭后会自动失效，符合“重新打开网页再次输入密码”的需求。
+// Cookie 签名会绑定当前密码会话版本，修改密码后旧 Cookie 会立即失效。
 type PasswordAuthMiddleware struct {
 	settingsService *service.SettingsService
 	secretKey       []byte
@@ -92,7 +93,8 @@ func (m *PasswordAuthMiddleware) Middleware() gin.HandlerFunc {
 // @param username 当前登录用户名
 func (m *PasswordAuthMiddleware) SetAuthCookie(c *gin.Context, username string) {
 	trimmedUsername := strings.TrimSpace(username)
-	signature := m.sign(trimmedUsername)
+	sessionVersion := m.currentSessionVersion(trimmedUsername)
+	signature := m.sign(trimmedUsername, sessionVersion)
 	cookieValue := base64.StdEncoding.EncodeToString([]byte(trimmedUsername + ":" + signature))
 
 	// MaxAge 设置为 0，表示浏览器会话级 Cookie。
@@ -129,7 +131,18 @@ func (m *PasswordAuthMiddleware) ValidateAuthCookie(c *gin.Context) (string, err
 
 	username := strings.TrimSpace(parts[0])
 	signature := parts[1]
-	expectedSignature := m.sign(username)
+	currentSettings, err := m.settingsService.GetSettings()
+	if err != nil {
+		return "", errors.New("读取认证配置失败")
+	}
+	if !currentSettings.PasswordAuth.Enabled {
+		return "", errors.New("密码认证未启用")
+	}
+	if currentSettings.PasswordAuth.Username != username {
+		return "", errors.New("认证用户名不匹配")
+	}
+
+	expectedSignature := m.sign(username, currentSettings.PasswordAuth.SessionVersion)
 	if !hmac.Equal([]byte(signature), []byte(expectedSignature)) {
 		return "", errors.New("认证签名校验失败")
 	}
@@ -167,13 +180,34 @@ func (m *PasswordAuthMiddleware) isPublicPath(path string, method string) bool {
 	return false
 }
 
-// sign 对用户名生成 HMAC-SHA256 签名。
-// 这样客户端即使能看到 Cookie 内容，也无法伪造有效登录态。
+// currentSessionVersion 读取当前用户的密码会话版本。
+// SetAuthCookie 需要保持无错误返回的简洁调用方式；如果读取失败，则返回空版本，
+// 随后的受保护接口校验仍会按当前设置重新验证并拒绝不匹配的 Cookie。
+//
+// @param username 需要写入 Cookie 的用户名
+// @returns string 当前密码会话版本，读取失败时返回空字符串
+func (m *PasswordAuthMiddleware) currentSessionVersion(username string) string {
+	currentSettings, err := m.settingsService.GetSettings()
+	if err != nil {
+		return ""
+	}
+
+	if !currentSettings.PasswordAuth.Enabled || currentSettings.PasswordAuth.Username != username {
+		return ""
+	}
+
+	return currentSettings.PasswordAuth.SessionVersion
+}
+
+// sign 对用户名和密码会话版本生成 HMAC-SHA256 签名。
+// 这样客户端即使能看到 Cookie 内容，也无法伪造有效登录态；
+// 修改密码后 sessionVersion 变化，旧 Cookie 的签名也会随之失效。
 //
 // @param username 需要签名的用户名
+// @param sessionVersion 当前密码会话版本
 // @returns string 返回 Base64 URL 安全编码后的签名结果
-func (m *PasswordAuthMiddleware) sign(username string) string {
+func (m *PasswordAuthMiddleware) sign(username string, sessionVersion string) string {
 	mac := hmac.New(sha256.New, m.secretKey)
-	mac.Write([]byte(username))
+	mac.Write([]byte(username + ":" + sessionVersion))
 	return base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
 }

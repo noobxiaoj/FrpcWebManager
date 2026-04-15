@@ -35,28 +35,58 @@ func NewIPWhitelistMiddleware(settingsService *service.SettingsService) *IPWhite
 
 // GetClientIP 获取客户端真实IP
 func (m *IPWhitelistMiddleware) GetClientIP(c *gin.Context) string {
-	// 1. 检查 X-Real-IP 头（Nginx 代理常用）
-	if xRealIP := c.GetHeader("X-Real-IP"); xRealIP != "" {
-		return xRealIP
-	}
+	remoteIP := parseRemoteIP(c.Request.RemoteAddr)
 
-	// 2. 检查 X-Forwarded-For 头（可能包含多个IP，取第一个）
-	if xForwardedFor := c.GetHeader("X-Forwarded-For"); xForwardedFor != "" {
-		// X-Forwarded-For 格式: "clientIP, proxy1IP, proxy2IP"
-		// 取第一个IP作为真实客户端IP
-		if idx := strings.Index(xForwardedFor, ","); idx != -1 {
-			return strings.TrimSpace(xForwardedFor[:idx])
+	// 只有请求确实来自本机反向代理时，才信任代理转发的客户端 IP。
+	// 如果服务直接暴露公网，X-Real-IP / X-Forwarded-For 都可以被客户端伪造，
+	// 因此不能无条件拿它们参与白名单判断。
+	if isTrustedForwardingProxy(remoteIP) {
+		if xRealIP := strings.TrimSpace(c.GetHeader("X-Real-IP")); xRealIP != "" {
+			return xRealIP
 		}
-		return strings.TrimSpace(xForwardedFor)
+
+		if xForwardedFor := c.GetHeader("X-Forwarded-For"); xForwardedFor != "" {
+			// X-Forwarded-For 格式: "clientIP, proxy1IP, proxy2IP"，取第一个IP作为真实客户端IP。
+			if idx := strings.Index(xForwardedFor, ","); idx != -1 {
+				return strings.TrimSpace(xForwardedFor[:idx])
+			}
+			return strings.TrimSpace(xForwardedFor)
+		}
 	}
 
-	// 3. 使用 RemoteAddr（直接连接时的IP）
-	// RemoteAddr 格式: "IP:port"，需要提取IP部分
-	if ip, _, err := net.SplitHostPort(c.Request.RemoteAddr); err == nil {
-		return ip
+	if remoteIP != "" {
+		return remoteIP
 	}
 
 	return c.Request.RemoteAddr
+}
+
+// parseRemoteIP 从 RemoteAddr 中提取远端 IP。
+// RemoteAddr 通常是 "IP:port" 格式；如果解析失败，则退回原始字符串，便于后续 ParseIP 再判断。
+//
+// @param remoteAddr 请求的 RemoteAddr
+// @returns string 提取出的 IP 或原始地址
+func parseRemoteIP(remoteAddr string) string {
+	if ip, _, err := net.SplitHostPort(remoteAddr); err == nil {
+		return ip
+	}
+
+	return strings.TrimSpace(remoteAddr)
+}
+
+// isTrustedForwardingProxy 判断是否信任该来源提供的转发 Header。
+// 当前采用安全默认值：只信任本机代理。若后续需要信任 Docker 网桥或内网反代，
+// 建议改为从显式配置读取可信代理网段，而不是默认信任所有内网地址。
+//
+// @param remoteIP 直接连接到服务的远端 IP
+// @returns bool 是否允许读取 X-Real-IP / X-Forwarded-For
+func isTrustedForwardingProxy(remoteIP string) bool {
+	parsedIP := net.ParseIP(remoteIP)
+	if parsedIP == nil {
+		return false
+	}
+
+	return parsedIP.IsLoopback()
 }
 
 // IsIPInWhitelist 检查IP是否在白名单中

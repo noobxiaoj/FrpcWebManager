@@ -61,11 +61,17 @@ func (s *SettingsService) SetPassword(username string, password string) error {
 		return err
 	}
 
+	sessionVersion, err := security.GenerateSessionVersion()
+	if err != nil {
+		return err
+	}
+
 	currentSettings.PasswordAuth = model.PasswordAuthSettings{
-		Enabled:      true,
-		Username:     username,
-		PasswordHash: passwordHash,
-		Password:     "",
+		Enabled:        true,
+		Username:       username,
+		PasswordHash:   passwordHash,
+		Password:       "",
+		SessionVersion: sessionVersion,
 	}
 
 	return s.repo.UpdateSettings(currentSettings)
@@ -95,8 +101,14 @@ func (s *SettingsService) ChangePassword(oldPassword string, newPassword string)
 		return err
 	}
 
+	sessionVersion, err := security.GenerateSessionVersion()
+	if err != nil {
+		return err
+	}
+
 	currentSettings.PasswordAuth.PasswordHash = passwordHash
 	currentSettings.PasswordAuth.Password = ""
+	currentSettings.PasswordAuth.SessionVersion = sessionVersion
 	return s.repo.UpdateSettings(currentSettings)
 }
 
@@ -120,10 +132,11 @@ func (s *SettingsService) DeletePassword(username string, password string) error
 	}
 
 	currentSettings.PasswordAuth = model.PasswordAuthSettings{
-		Enabled:      false,
-		Username:     "",
-		PasswordHash: "",
-		Password:     "",
+		Enabled:        false,
+		Username:       "",
+		PasswordHash:   "",
+		Password:       "",
+		SessionVersion: "",
 	}
 
 	return s.repo.UpdateSettings(currentSettings)

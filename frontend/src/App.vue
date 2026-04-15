@@ -204,11 +204,13 @@ onMounted(async () => {
    */
   window.addEventListener('auth-expired', handleAuthExpired)
   window.addEventListener('app-settings-updated', handleAppSettingsUpdated)
+  window.addEventListener('auth-state-updated', loadAuthStatus)
 })
 
 onUnmounted(() => {
   window.removeEventListener('auth-expired', handleAuthExpired)
   window.removeEventListener('app-settings-updated', handleAppSettingsUpdated)
+  window.removeEventListener('auth-state-updated', loadAuthStatus)
 })
 </script>
 

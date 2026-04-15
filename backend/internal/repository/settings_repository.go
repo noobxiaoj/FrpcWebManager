@@ -142,6 +142,7 @@ func normalizeSettings(settings *model.SystemSettings) (*model.SystemSettings, e
 		normalized.PasswordAuth.Username = ""
 		normalized.PasswordAuth.PasswordHash = ""
 		normalized.PasswordAuth.Password = ""
+		normalized.PasswordAuth.SessionVersion = ""
 		return normalized, nil
 	}
 
@@ -156,6 +157,16 @@ func normalizeSettings(settings *model.SystemSettings) (*model.SystemSettings, e
 
 		normalized.PasswordAuth.PasswordHash = passwordHash
 		normalized.PasswordAuth.Password = ""
+	}
+
+	// 旧版配置没有会话版本。启用密码时补齐一个随机版本，
+	// 后续修改密码会轮换该值，从而让旧登录 Cookie 自动失效。
+	if normalized.PasswordAuth.SessionVersion == "" {
+		sessionVersion, err := security.GenerateSessionVersion()
+		if err != nil {
+			return nil, err
+		}
+		normalized.PasswordAuth.SessionVersion = sessionVersion
 	}
 
 	return normalized, nil

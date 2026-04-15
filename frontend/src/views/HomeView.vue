@@ -34,6 +34,11 @@
       </template>
     </PageHeader>
 
+    <div v-if="error" class="error-message">
+      {{ error }}
+      <AppButton preserve-style @click="error = null">×</AppButton>
+    </div>
+
     <div v-if="loading && sortedServers.length === 0" class="global-loading">
       <div class="loading-spinner"></div>
       <p>{{ t('home.loading') }}</p>
@@ -51,7 +56,7 @@
       </article>
     </div>
 
-    <div v-else-if="isInitialized" class="empty-state">
+    <div v-else-if="isInitialized && !error" class="empty-state">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
         <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
@@ -87,6 +92,7 @@ const router = useRouter()
 const { t } = useI18n()
 
 const loading = ref(false)
+const error = ref(null)
 const isInitialized = ref(false)
 const servers = ref([])
 const tasks = ref([])
@@ -176,6 +182,7 @@ const sortedServers = computed(() => {
 const loadServers = async () => {
   try {
     loading.value = true
+    error.value = null
     const [serverResult, taskResult] = await Promise.allSettled([
       serverAPI.listServers(),
       taskApi.list()
@@ -192,8 +199,10 @@ const loadServers = async () => {
     tasks.value = taskResult.status === 'fulfilled'
       ? (taskResult.value?.data?.tasks || [])
       : []
-  } catch (error) {
-    console.error('加载服务器列表失败:', error)
+  } catch (loadError) {
+    const message = loadError?.message || t('home.messages.loadFailed')
+    error.value = message
+    console.error('加载服务器列表失败:', loadError)
   } finally {
     loading.value = false
     isInitialized.value = true
@@ -292,6 +301,32 @@ onMounted(async () => {
   border-top-color: var(--accent-color);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+}
+
+.error-message {
+  background: var(--danger-color-bg);
+  border: 1px solid var(--danger-color);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  color: var(--danger-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.error-message button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--danger-color);
+  padding: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .server-grid {

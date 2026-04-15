@@ -142,6 +142,7 @@ const messages = {
         portInvalid: '请输入有效的端口号 (1-65535)'
       },
       messages: {
+        loadFailed: '加载服务器列表失败',
         createFailed: '创建服务器失败'
       }
     },
@@ -399,7 +400,7 @@ const messages = {
         invalidPort: '端口号必须在 1024-65535 之间'
       },
       sections: {
-        serverDisplay: '服务器显示设置',
+        serverDisplay: '任务显示设置',
         navigationBar: '导航栏设置',
         dataRefresh: '数据刷新设置',
         frontendService: '前端服务设置',
@@ -555,6 +556,7 @@ const messages = {
         portInvalid: 'Please enter a valid port (1-65535)'
       },
       messages: {
+        loadFailed: 'Failed to load server list',
         createFailed: 'Failed to create server'
       }
     },
@@ -812,7 +814,7 @@ const messages = {
         invalidPort: 'Port must be between 1024 and 65535'
       },
       sections: {
-        serverDisplay: 'Server Display',
+        serverDisplay: 'Task Display',
         navigationBar: 'Navigation Bar',
         dataRefresh: 'Data Refresh',
         frontendService: 'Frontend Service',

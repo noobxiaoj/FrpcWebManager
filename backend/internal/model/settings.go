@@ -16,10 +16,11 @@ const (
 // 当前使用 bcrypt 哈希存储密码。
 // Password 字段仅用于兼容旧版 settings.json 中的明文密码迁移，迁移完成后会被清空。
 type PasswordAuthSettings struct {
-	Enabled      bool   `json:"enabled"`               // 是否已启用密码
-	Username     string `json:"username"`              // 登录用户名
-	PasswordHash string `json:"passwordHash"`          // bcrypt 哈希后的密码
-	Password     string `json:"password,omitempty"`    // 旧版明文密码，仅用于自动迁移
+	Enabled        bool   `json:"enabled"`             // 是否已启用密码
+	Username       string `json:"username"`            // 登录用户名
+	PasswordHash   string `json:"passwordHash"`        // bcrypt 哈希后的密码
+	Password       string `json:"password,omitempty"`  // 旧版明文密码，仅用于自动迁移
+	SessionVersion string `json:"sessionVersion"`      // 会话版本，修改密码时轮换以让旧 Cookie 失效
 }
 
 // PasswordAuthInfo 返回给前端的密码设置信息
@@ -54,13 +55,13 @@ type SystemSettings struct {
 // DefaultSystemSettings 返回默认系统设置
 func DefaultSystemSettings() *SystemSettings {
 	return &SystemSettings{
-		RefreshInterval:      10,    // 默认刷新间隔 10 秒
-		ShowServerName:       false, // 默认不显示服务器名称
+		RefreshInterval:      10,           // 默认刷新间隔 10 秒
+		ShowServerName:       false,        // 默认不显示服务器名称
 		Language:             LanguageZhCN, // 默认语言为简体中文
-		FrontendPort:         4500,  // 默认前端端口 4500
-		ConnectionIdentifier: "", // 默认连接标识为空，便于后续按需启用
-		EnableIPWhitelist:    false, // 默认不启用IP白名单
-		IPWhitelist:          []string{}, // 默认白名单为空
+		FrontendPort:         4500,         // 默认前端端口 4500
+		ConnectionIdentifier: "",           // 默认连接标识为空，便于后续按需启用
+		EnableIPWhitelist:    false,        // 默认不启用IP白名单
+		IPWhitelist:          []string{},   // 默认白名单为空
 		NavigationBar: NavigationBarSettings{
 			ShowAboutButton:    true,
 			ShowLockButton:     true,
@@ -68,10 +69,11 @@ func DefaultSystemSettings() *SystemSettings {
 			ShowThemeButton:    true,
 		},
 		PasswordAuth: PasswordAuthSettings{
-			Enabled:  false,
-			Username: "",
-			PasswordHash: "",
-			Password:     "",
+			Enabled:        false,
+			Username:       "",
+			PasswordHash:   "",
+			Password:       "",
+			SessionVersion: "",
 		},
 	}
 }
@@ -100,10 +102,11 @@ func (s *SystemSettings) Clone() *SystemSettings {
 			ShowThemeButton:    s.NavigationBar.ShowThemeButton,
 		},
 		PasswordAuth: PasswordAuthSettings{
-			Enabled:      s.PasswordAuth.Enabled,
-			Username:     s.PasswordAuth.Username,
-			PasswordHash: s.PasswordAuth.PasswordHash,
-			Password:     s.PasswordAuth.Password,
+			Enabled:        s.PasswordAuth.Enabled,
+			Username:       s.PasswordAuth.Username,
+			PasswordHash:   s.PasswordAuth.PasswordHash,
+			Password:       s.PasswordAuth.Password,
+			SessionVersion: s.PasswordAuth.SessionVersion,
 		},
 	}
 }

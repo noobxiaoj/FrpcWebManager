@@ -125,7 +125,6 @@ func SetupRoutes(r *gin.Engine, taskHandler *handler.TaskHandler, serverHandler 
 		// 文档路由
 		api.GET("/changelog/files", func(c *gin.Context) {
 			docsPath := "./docs"
-			lang := normalizeDocsLanguage(c.Query("lang"))
 
 			// 读取目录中的所有文件
 			files, err := os.ReadDir(docsPath)
@@ -137,7 +136,8 @@ func SetupRoutes(r *gin.Engine, taskHandler *handler.TaskHandler, serverHandler 
 			var versionFiles []string
 
 			// 筛选出版本文件（统一返回基础文件名）。
-			// 英文模式下只返回“存在英文翻译版本”的条目，避免前端切英文后仍混入中文原文。
+			// 英文模式下也保留基础中文文件名；具体读取内容时会优先找 `.en.md`，
+			// 若英文文档尚未提供，则由单文件接口回退到中文原文，避免最新版本在英文页面直接消失。
 			for _, file := range files {
 				filename := file.Name()
 
@@ -155,13 +155,6 @@ func SetupRoutes(r *gin.Engine, taskHandler *handler.TaskHandler, serverHandler 
 
 				if filename == "简介.md" {
 					continue
-				}
-
-				if lang == "en" {
-					englishFilename := localizedDocFilename(filename, lang)
-					if _, statErr := os.Stat(filepath.Join(docsPath, englishFilename)); statErr != nil {
-						continue
-					}
 				}
 
 				versionFiles = append(versionFiles, filename)

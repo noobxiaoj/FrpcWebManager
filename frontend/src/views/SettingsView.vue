@@ -602,6 +602,10 @@ const handlePasswordSubmit = async (payload) => {
       originalSettings.value.passwordAuth = JSON.parse(JSON.stringify(settings.value.passwordAuth))
     }
 
+    // 密码启用/删除会影响根组件的认证状态与顶部锁定按钮显示，
+    // 通知 App.vue 重新读取 /api/auth/status，避免必须刷新页面才同步。
+    window.dispatchEvent(new CustomEvent('auth-state-updated'))
+
     closePasswordModal()
     showSaveMessage(data.data?.message || '密码设置已更新', true)
   } catch (error) {

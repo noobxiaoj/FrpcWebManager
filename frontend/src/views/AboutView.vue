@@ -148,6 +148,18 @@ const historyUpdatesStatus = ref(CONTENT_STATUS.LOADING)
 const latestLoadRequestId = ref(0)
 
 /**
+ * 判断当前加载任务是否仍然是最新任务。
+ * 关于页会在语言切换时重新拉取文档，旧请求可能晚于新请求返回；
+ * 所有异步请求恢复执行后都通过这个函数确认身份，避免旧语言内容覆盖新语言内容。
+ *
+ * @param {number} requestId - 当前加载任务开始时分配的自增请求编号
+ * @returns {boolean} true 表示当前任务仍然有效，false 表示已经被更新的任务取代
+ */
+const isLatestLoadRequest = (requestId) => {
+  return latestLoadRequestId.value === requestId
+}
+
+/**
  * 仅在开发环境输出调试日志。
  * 这样保留排障能力，同时避免生产环境噪声和内部信息暴露过多。
  *
@@ -171,6 +183,37 @@ const debugError = (...args) => {
   if (import.meta.env.DEV) {
     console.error(...args)
   }
+}
+
+/**
+ * 统一解析 about 页使用的 API 响应。
+ * 后端认证中间件在登录失效时会返回 HTTP 200 + 业务错误码，
+ * 因此不能只依赖 response.ok，需要同时检查响应体中的 code。
+ *
+ * @param {Response} response - fetch 返回的原始响应对象
+ * @returns {Promise<Object>} 返回业务响应体中的 data 字段
+ */
+const parseApiData = async (response) => {
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+  }
+
+  const result = await response.json()
+
+  if (result?.code !== undefined && result.code !== 0) {
+    if (result.code === 1004) {
+      // 通知根组件重新读取认证状态，让用户回到登录页，而不是停留在 about 页错误态。
+      window.dispatchEvent(new Event('auth-expired'))
+    }
+
+    throw new Error(result.message || t('about.tryLater'))
+  }
+
+  if (!result?.data || typeof result.data !== 'object') {
+    throw new Error(t('about.invalidData'))
+  }
+
+  return result.data
 }
 
 // 分页状态
@@ -309,13 +352,13 @@ const loadMarkdownFile = async (filename) => {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
 
-    const data = await response.json()
-    if (!data?.data || typeof data.data.content !== 'string') {
+    const data = await parseApiData(response)
+    if (typeof data.content !== 'string') {
       throw new Error(t('about.invalidData'))
     }
 
     debugLog('响应数据:', data)
-    return data.data.content
+    return data.content
   } catch (error) {
     debugError(`Error loading ${filename}:`, error)
     debugError('错误堆栈:', error?.stack)
@@ -332,7 +375,7 @@ const extractVersionFromFilename = (filename) => {
 
 // 加载所有更新日志
 const loadChangelog = async () => {
-  const requestId = Date.now()
+  const requestId = latestLoadRequestId.value + 1
   latestLoadRequestId.value = requestId
 
   try {
@@ -349,6 +392,10 @@ const loadChangelog = async () => {
 
     // 加载简介
     const intro = await loadMarkdownFile('简介.md')
+    if (!isLatestLoadRequest(requestId)) {
+      return
+    }
+
     debugLog('简介内容:', intro ? '加载成功' : '加载失败')
     if (typeof intro === 'string' && intro.trim()) {
       introductionContent.value = intro
@@ -370,14 +417,14 @@ const loadChangelog = async () => {
     const versionsResponse = await fetch(`${apiUrl}/api/changelog/files?${params.toString()}`, {
       credentials: 'include'
     })
-    debugLog('响应状态:', versionsResponse.status, versionsResponse.statusText)
-
-    if (!versionsResponse.ok) {
-      throw new Error(`更新日志列表加载失败（状态码: ${versionsResponse.status}）`)
+    if (!isLatestLoadRequest(requestId)) {
+      return
     }
 
-    const data = await versionsResponse.json()
-    const updateFiles = data.data.files || []
+    debugLog('响应状态:', versionsResponse.status, versionsResponse.statusText)
+
+    const data = await parseApiData(versionsResponse)
+    const updateFiles = data.files || []
     debugLog('从API获取的版本文件列表:', updateFiles)
 
     // 过滤出有效的更新文件(排除简介等特殊文件)
@@ -402,6 +449,9 @@ const loadChangelog = async () => {
         return { content, filename: update.filename }
       })
     )
+    if (!isLatestLoadRequest(requestId)) {
+      return
+    }
 
     // 过滤掉加载失败的内容
     const validUpdates = updateContents.filter(item => typeof item.content === 'string' && item.content.trim())
@@ -435,6 +485,10 @@ const loadChangelog = async () => {
       historyUpdatesStatus.value = CONTENT_STATUS.EMPTY
     }
   } catch (error) {
+    if (!isLatestLoadRequest(requestId)) {
+      return
+    }
+
     debugError('Error loading changelog:', error)
     loadError.value = t('about.historyLoadFailedWithMessage', {
       message: error.message || t('about.tryLater')
